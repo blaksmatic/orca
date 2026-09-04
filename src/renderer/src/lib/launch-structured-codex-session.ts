@@ -9,6 +9,7 @@ import {
 } from '../../../shared/structured-agent-session-mutation'
 import { isDefinitiveAgentSessionCreateRefusal } from '../../../shared/agent-session-definitive-refusal'
 import { callStructuredAgentSession } from '@/runtime/structured-agent-session-client'
+import { RuntimeRpcCallError } from '@/runtime/runtime-rpc-client'
 import { toRuntimeWorktreeSelector } from '@/runtime/runtime-worktree-selector'
 import { useAppStore } from '@/store'
 import {
@@ -99,9 +100,23 @@ export function abandonStructuredAgentSessionLaunchIntent(
 export async function launchStructuredCodexSession(
   intent: StructuredAgentSessionLaunchIntent
 ): Promise<Pick<AgentSessionAttachResult, 'sessionId' | 'fence'>> {
-  const result = await callStructuredAgentSession<
-    AgentSessionMutationResult<AgentSessionAttachResult>
-  >({ kind: 'local' }, 'agentSession.create', intent.params)
+  let result: AgentSessionMutationResult<AgentSessionAttachResult>
+  try {
+    result = await callStructuredAgentSession<AgentSessionMutationResult<AgentSessionAttachResult>>(
+      { kind: 'local' },
+      'agentSession.create',
+      intent.params
+    )
+  } catch (error) {
+    if (
+      !(error instanceof RuntimeRpcCallError) ||
+      !isDefinitiveAgentSessionCreateRefusal(error.code)
+    ) {
+      throw error
+    }
+    abandonStructuredAgentSessionLaunchIntent(intent)
+    throw new StructuredAgentSessionCreateRefusalError(error.message, error.code)
+  }
   if (!result.ok) {
     const { code, message } = result.refusal
     if (!isDefinitiveAgentSessionCreateRefusal(code)) {

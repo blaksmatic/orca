@@ -7,6 +7,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import type { RuntimeMobileSessionTabsResult } from '../../../shared/runtime-session-contracts'
+import { RuntimeRpcCallError } from '@/runtime/runtime-rpc-client'
 
 const mocks = vi.hoisted(() => ({
   call: vi.fn(),
@@ -38,7 +39,10 @@ import {
   StructuredAgentSessionCreateRefusalError,
   StructuredAgentSessionCreateUnknownOutcomeError
 } from '@/lib/launch-structured-codex-session'
-import { startStructuredCodexLaunch } from './structured-agent-session-launch'
+import {
+  getStructuredCodexLaunchStatus,
+  startStructuredCodexLaunch
+} from './structured-agent-session-launch'
 
 type CreateReply = { ok: boolean; refusal?: { code: string; message: string } }
 
@@ -168,5 +172,29 @@ describe('legacy terminal fallback after a refused structured create', () => {
       mocks.call.mock.calls.filter(([, method]) => method === 'agentSession.create')
     ).toHaveLength(1)
     expect(launch.isVisibilityUnknown()).toBe(false)
+  })
+
+  it('opens exactly one legacy terminal when an older runtime has no create method', async () => {
+    const legacyTerminals: string[] = []
+    mocks.call.mockRejectedValue(
+      new RuntimeRpcCallError({
+        id: 'rpc-old-runtime',
+        ok: false,
+        error: { code: 'method_not_found', message: 'Unknown method: agentSession.create' }
+      })
+    )
+
+    const launch = startStructuredCodexLaunch('wt-old-runtime')
+    const fallbackRan = launch.claimDefinitiveRefusalFallback(() => {
+      legacyTerminals.push('legacy-terminal')
+    })
+
+    await expect(launch.launchResult).rejects.toBeInstanceOf(
+      StructuredAgentSessionCreateRefusalError
+    )
+    await expect(fallbackRan).resolves.toBe(true)
+    expect(legacyTerminals).toEqual(['legacy-terminal'])
+    expect(mocks.call).toHaveBeenCalledOnce()
+    expect(getStructuredCodexLaunchStatus('wt-old-runtime')).toBe('idle')
   })
 })

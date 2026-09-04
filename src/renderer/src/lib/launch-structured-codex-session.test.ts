@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { structuredAgentSessionPayloadFingerprint } from '../../../shared/structured-agent-session-mutation'
 import { callStructuredAgentSession } from '@/runtime/structured-agent-session-client'
+import { RuntimeRpcCallError } from '@/runtime/runtime-rpc-client'
 import { peekWebSessionFocusIntent } from '@/runtime/web-session-focus-intent'
 import { LOCAL_STRUCTURED_SESSION_OWNER } from '@/runtime/local-structured-session-tabs-sync'
 import {
@@ -112,6 +113,61 @@ describe('structured Codex launch', () => {
       )
     ).toBeNull()
   })
+
+  it('classifies a thrown method-not-found RPC failure as definitive', async () => {
+    const intent = createStructuredCodexSessionLaunchIntent('workspace-old-runtime')
+    vi.mocked(callStructuredAgentSession).mockRejectedValue(
+      new RuntimeRpcCallError({
+        id: 'rpc-old-runtime',
+        ok: false,
+        error: { code: 'method_not_found', message: 'Unknown method: agentSession.create' }
+      })
+    )
+
+    const error = await launchStructuredCodexSession(intent).catch((thrown: unknown) => thrown)
+
+    expect(error).toBeInstanceOf(StructuredAgentSessionCreateRefusalError)
+    expect((error as StructuredAgentSessionCreateRefusalError).code).toBe('method_not_found')
+    expect(
+      peekWebSessionFocusIntent(
+        { environmentId: LOCAL_STRUCTURED_SESSION_OWNER },
+        'workspace-old-runtime'
+      )
+    ).toBeNull()
+  })
+
+  it('does not trust method-not-found text without the dispatcher code', async () => {
+    const intent = createStructuredCodexSessionLaunchIntent('workspace-ambiguous-error')
+    const failure = new Error('method_not_found')
+    vi.mocked(callStructuredAgentSession).mockRejectedValue(failure)
+
+    await expect(launchStructuredCodexSession(intent)).rejects.toBe(failure)
+    expect(
+      peekWebSessionFocusIntent(
+        { environmentId: LOCAL_STRUCTURED_SESSION_OWNER },
+        'workspace-ambiguous-error'
+      )
+    ).toEqual(expect.objectContaining({ hostTabId: `agent-session:${intent.sessionId}` }))
+  })
+
+  it.each(['runtime_timeout', 'remote_runtime_unavailable'])(
+    'keeps a thrown %s RPC failure unknown',
+    async (code) => {
+      const worktreeId = `workspace-${code}`
+      const intent = createStructuredCodexSessionLaunchIntent(worktreeId)
+      const failure = new RuntimeRpcCallError({
+        id: `rpc-${code}`,
+        ok: false,
+        error: { code, message: 'The create result could not be confirmed.' }
+      })
+      vi.mocked(callStructuredAgentSession).mockRejectedValue(failure)
+
+      await expect(launchStructuredCodexSession(intent)).rejects.toBe(failure)
+      expect(
+        peekWebSessionFocusIntent({ environmentId: LOCAL_STRUCTURED_SESSION_OWNER }, worktreeId)
+      ).toEqual(expect.objectContaining({ hostTabId: `agent-session:${intent.sessionId}` }))
+    }
+  )
 
   it.each(['agent_session_operation_unknown', 'agent_session_ownership_unknown'])(
     'leaves %s unknown rather than definitively refused',
