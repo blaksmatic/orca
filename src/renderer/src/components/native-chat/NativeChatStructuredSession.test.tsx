@@ -598,7 +598,6 @@ describe('NativeChatStructuredSession', () => {
         sessionId="session-questions"
         target={{ kind: 'local' }}
         agent="claude"
-        allowFileUriLinks={false}
       />
     )
 
@@ -657,7 +656,6 @@ describe('NativeChatStructuredSession', () => {
         sessionId="session-legacy-question"
         target={{ kind: 'local' }}
         agent="claude"
-        allowFileUriLinks={false}
       />
     )
 
