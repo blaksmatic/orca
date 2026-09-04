@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Check, ChevronRight, SquareTerminal, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
@@ -154,7 +154,7 @@ function ToolLine({
 /** A run of a message's tool calls/results, collapsed to a one-line summary that
  *  expands to the individual inline tool lines. `expandSignal` lets the global
  *  toolbar toggle drive every run at once while still allowing per-run override. */
-export function NativeChatToolRun({
+export const NativeChatToolRun = React.memo(function NativeChatToolRun({
   blocks,
   expandSignal,
   activeTurnIsWorking,
@@ -174,16 +174,26 @@ export function NativeChatToolRun({
   // Re-sync when the global toolbar toggle flips.
   useEffect(() => setOpen(expandOverride ?? expandSignal), [expandOverride, expandSignal])
 
-  const callCount = countToolCalls(blocks) || blocks.length
-  const summary = summarizeToolRun(blocks)
-  const calls = blocks.filter(isToolCallBlock)
-  const activeCalls = structuredActivityUi
-    ? calls.filter(
-        (call) =>
-          (call.state === 'running' || (call.state == null && activeTurnIsWorking === true)) &&
-          activeTurnIsWorking !== false
-      )
-    : []
+  // Four passes over the same block set; a streaming turn re-rendered every run's worth of them.
+  const { callCount, calls, summary } = useMemo(
+    () => ({
+      callCount: countToolCalls(blocks) || blocks.length,
+      summary: summarizeToolRun(blocks),
+      calls: blocks.filter(isToolCallBlock)
+    }),
+    [blocks]
+  )
+  const activeCalls = useMemo(
+    () =>
+      structuredActivityUi
+        ? calls.filter(
+            (call) =>
+              (call.state === 'running' || (call.state == null && activeTurnIsWorking === true)) &&
+              activeTurnIsWorking !== false
+          )
+        : [],
+    [activeTurnIsWorking, calls, structuredActivityUi]
+  )
   const latestActiveCall = activeCalls.at(-1)
   const isSettled = latestActiveCall == null
   // The turn caret opens the activity group, while each child tool remains
@@ -285,4 +295,4 @@ export function NativeChatToolRun({
       ) : null}
     </div>
   )
-}
+})

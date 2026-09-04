@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
 import type { NativeChatMessage } from '../../../../shared/native-chat-types'
 
 type NativeChatTurnTiming = {
@@ -26,16 +26,23 @@ export function useNativeChatTurnStatus({
   active: NativeChatTurnStatus | null
   completedByTurn: Readonly<Record<string, NativeChatTurnStatus>>
 } {
-  const currentTurnMessages = messages.slice(latestUserIndex + 1)
-  const hasCurrentTurnResponse = currentTurnMessages.some(
-    (message) =>
-      (message.role === 'assistant' || message.role === 'tool') &&
-      message.blocks.some(
-        (block) =>
-          block.type === 'tool-call' ||
-          block.type === 'tool-result' ||
-          (block.type === 'text' && block.text.trim().length > 0)
-      )
+  // Why memoized: this runs on every render of a list that re-renders on every stream frame,
+  // and the slice allocated a fresh array of the whole current turn each time.
+  const hasCurrentTurnResponse = useMemo(
+    () =>
+      messages
+        .slice(latestUserIndex + 1)
+        .some(
+          (message) =>
+            (message.role === 'assistant' || message.role === 'tool') &&
+            message.blocks.some(
+              (block) =>
+                block.type === 'tool-call' ||
+                block.type === 'tool-result' ||
+                (block.type === 'text' && block.text.trim().length > 0)
+            )
+        ),
+    [latestUserIndex, messages]
   )
   const latestUserId = latestUserIndex !== -1 ? (messages[latestUserIndex]?.id ?? null) : null
   const activeTurnKey = latestUserId ?? '__unanchored__'
