@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { structuredAgentSessionPayloadFingerprint } from '../../../shared/structured-agent-session-mutation'
 import { callStructuredAgentSession } from '@/runtime/structured-agent-session-client'
+import { peekWebSessionFocusIntent } from '@/runtime/web-session-focus-intent'
+import { LOCAL_STRUCTURED_SESSION_OWNER } from '@/runtime/local-structured-session-tabs-sync'
 import {
   createStructuredCodexSessionLaunchIntent,
-  launchStructuredCodexSession
+  launchStructuredCodexSession,
+  StructuredAgentSessionCreateRefusalError,
+  StructuredAgentSessionCreateUnknownOutcomeError
 } from './launch-structured-codex-session'
 
 vi.mock('@/runtime/structured-agent-session-client', () => ({
@@ -84,4 +88,50 @@ describe('structured Codex launch', () => {
     expect(second).toBe(first)
     expect(intent.params.envelope.clientOperationId).toMatch(/^\d{13}-[0-9a-f]{32}$/)
   })
+
+  it('refuses definitively only on an allowlisted code, and carries it', async () => {
+    const intent = createStructuredCodexSessionLaunchIntent('workspace-unsupported')
+    vi.mocked(callStructuredAgentSession).mockResolvedValue({
+      ok: false,
+      refusal: {
+        code: 'structured_agent_session_unsupported',
+        message: 'Orca cannot open a structured Codex chat for this workspace.'
+      }
+    })
+
+    const error = await launchStructuredCodexSession(intent).catch((thrown: unknown) => thrown)
+
+    expect(error).toBeInstanceOf(StructuredAgentSessionCreateRefusalError)
+    expect((error as StructuredAgentSessionCreateRefusalError).code).toBe(
+      'structured_agent_session_unsupported'
+    )
+    expect(
+      peekWebSessionFocusIntent(
+        { environmentId: LOCAL_STRUCTURED_SESSION_OWNER },
+        'workspace-unsupported'
+      )
+    ).toBeNull()
+  })
+
+  it.each(['agent_session_operation_unknown', 'agent_session_ownership_unknown'])(
+    'leaves %s unknown rather than definitively refused',
+    async (code) => {
+      const worktreeId = `workspace-${code}`
+      const intent = createStructuredCodexSessionLaunchIntent(worktreeId)
+      vi.mocked(callStructuredAgentSession).mockResolvedValue({
+        ok: false,
+        refusal: { code, message: 'The Codex chat could not be confirmed.' }
+      })
+
+      const error = await launchStructuredCodexSession(intent).catch((thrown: unknown) => thrown)
+
+      expect(error).toBeInstanceOf(StructuredAgentSessionCreateUnknownOutcomeError)
+      expect(error).not.toBeInstanceOf(StructuredAgentSessionCreateRefusalError)
+      expect((error as StructuredAgentSessionCreateUnknownOutcomeError).code).toBe(code)
+      // The session may exist; the focus intent has to survive so recovery can adopt its tab.
+      expect(
+        peekWebSessionFocusIntent({ environmentId: LOCAL_STRUCTURED_SESSION_OWNER }, worktreeId)
+      ).toEqual(expect.objectContaining({ hostTabId: `agent-session:${intent.sessionId}` }))
+    }
+  )
 })

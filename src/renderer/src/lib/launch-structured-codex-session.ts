@@ -7,6 +7,7 @@ import {
   createStructuredAgentSessionOperationId,
   structuredAgentSessionPayloadFingerprint
 } from '../../../shared/structured-agent-session-mutation'
+import { isDefinitiveAgentSessionCreateRefusal } from '../../../shared/agent-session-definitive-refusal'
 import { callStructuredAgentSession } from '@/runtime/structured-agent-session-client'
 import { toRuntimeWorktreeSelector } from '@/runtime/runtime-worktree-selector'
 import { useAppStore } from '@/store'
@@ -29,7 +30,29 @@ export type StructuredAgentSessionLaunchIntent = {
   params: StructuredAgentSessionCreateParams
 }
 
-export class StructuredAgentSessionCreateRefusalError extends Error {}
+class StructuredAgentSessionCreateError extends Error {
+  /** The wire refusal code, or null when the client refused before a request left. */
+  readonly code: string | null
+
+  constructor(message: string, code: string | null = null) {
+    super(message)
+    this.code = code
+  }
+}
+
+/**
+ * The host proved it created nothing, so a caller may open a legacy terminal instead. The class
+ * itself is the verdict: `launchStructuredCodexSession` is the only place that decides it, against
+ * the shared allowlist, so no consumer has to remember to re-check a flag.
+ */
+export class StructuredAgentSessionCreateRefusalError extends StructuredAgentSessionCreateError {}
+
+/**
+ * Refused with a code that does not prove the session is absent. A sibling created here would sit
+ * beside a session the host may already hold, so this deliberately is NOT a refusal error: it flows
+ * down the same path as a lost reply, which replays the intent and reconciles.
+ */
+export class StructuredAgentSessionCreateUnknownOutcomeError extends StructuredAgentSessionCreateError {}
 
 export function createStructuredCodexSessionLaunchIntent(
   worktreeId: string
@@ -80,8 +103,13 @@ export async function launchStructuredCodexSession(
     AgentSessionMutationResult<AgentSessionAttachResult>
   >({ kind: 'local' }, 'agentSession.create', intent.params)
   if (!result.ok) {
+    const { code, message } = result.refusal
+    if (!isDefinitiveAgentSessionCreateRefusal(code)) {
+      // Keep the focus intent: the session may exist, and recovery still has to adopt it.
+      throw new StructuredAgentSessionCreateUnknownOutcomeError(message, code)
+    }
     abandonStructuredAgentSessionLaunchIntent(intent)
-    throw new StructuredAgentSessionCreateRefusalError(result.refusal.message)
+    throw new StructuredAgentSessionCreateRefusalError(message, code)
   }
   return { sessionId: result.value.sessionId, fence: result.value.fence }
 }
