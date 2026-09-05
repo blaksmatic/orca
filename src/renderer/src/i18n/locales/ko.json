@@ -18492,5 +18492,12 @@
   },
   "common": {
     "retry": "다시 시도"
+  },
+  "fileExplorer": {
+    "root": {
+      "label": "탐색기 루트",
+      "full": "저장소 루트",
+      "retry": "다시 시도"
+    }
   }
 }

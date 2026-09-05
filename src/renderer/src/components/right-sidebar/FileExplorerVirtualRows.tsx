@@ -16,6 +16,7 @@ type FileExplorerVirtualRowsProps = {
   virtualizer: Virtualizer<HTMLDivElement, Element>
   inlineInputIndex: number
   rowProjection: FileExplorerRowProjection
+  displayDepthOffset?: number
   inlineInput: InlineInput | null
   handleInlineSubmit: (value: string) => void
   dismissInlineInput: () => void
@@ -105,6 +106,7 @@ export function FileExplorerVirtualRows(props: FileExplorerVirtualRowsProps): Re
     virtualizer,
     inlineInputIndex,
     rowProjection,
+    displayDepthOffset = 0,
     inlineInput,
     handleInlineSubmit,
     dismissInlineInput,
@@ -183,7 +185,7 @@ export function FileExplorerVirtualRows(props: FileExplorerVirtualRowsProps): Re
               style={{ transform: `translateY(${vItem.start}px)` }}
             >
               <InlineInputRow
-                depth={inlineDepth}
+                depth={inlineDepth - displayDepthOffset}
                 inlineInput={inlineInput!}
                 onSubmit={handleInlineSubmit}
                 onCancel={dismissInlineInput}
@@ -220,6 +222,7 @@ export function FileExplorerVirtualRows(props: FileExplorerVirtualRowsProps): Re
             style={{ transform: `translateY(${vItem.start}px)` }}
           >
             <FileExplorerRow
+              displayDepthOffset={displayDepthOffset}
               node={n}
               isExpanded={expanded.has(n.path)}
               isLoading={n.isDirectory && loadingDirPaths.has(n.path)}

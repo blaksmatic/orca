@@ -139,7 +139,14 @@ export function useFileExplorerTree(
           setSourceWorkspaceId(null)
           rootReadFailedRef.current = true
         }
-        setDirCache((prev) => ({ ...prev, [dirPath]: { children: [] } }))
+        setDirCache((prev) => ({
+          ...prev,
+          [dirPath]: {
+            ...prev[dirPath],
+            children: prev[dirPath]?.children ?? [],
+            error: error instanceof Error ? error.message : String(error)
+          }
+        }))
         updateLoadingDirPaths((prev) => clearFileExplorerDirsLoading(prev, [dirPath]))
         return !options?.failOnError
       }
