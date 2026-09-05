@@ -66,8 +66,10 @@ import { hydrateStatusBarItems } from './ui-slice-hydration-status-bar-items'
 
 const MAX_LEFT_SIDEBAR_WIDTH = 500
 const MAX_RIGHT_SIDEBAR_WIDTH = 4000
+/** Builds hydration actions that reconcile authoritative UI state without discarding pending local edits. */
 export function createUiHydrationActions(set: UISliceSet, _get: UISliceGet): Partial<UISlice> {
   return {
+    /** Captures the incoming write baseline before overlaying dirty or in-flight local fields. */
     hydratePersistedUI: (ui, source = 'sync') =>
       set((s) => {
         const manualRepoOrder = normalizeManualRepoOrder(ui.manualRepoOrder)

@@ -101,6 +101,7 @@ function resolveDragSourceExecutionHostId(
   return sourceExecutionHostId
 }
 
+/** Renders virtual and inline-input rows using display-relative indentation but worktree-relative operation paths. */
 export function FileExplorerVirtualRows(props: FileExplorerVirtualRowsProps): React.JSX.Element {
   const {
     virtualizer,
