@@ -1,6 +1,7 @@
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import { getRepoIdFromWorktreeId } from '../../../shared/worktree/id'
 
+/** Mutates UI state to remove selections and preferences whose owning repositories were deregistered. */
 export function pruneDeregisteredRepoUiResidue(
   ui: PersistedState['ui'],
   orphanRepoIds: ReadonlySet<string>

@@ -253,6 +253,7 @@ export function hydrateUnexpectedSignoutDismissal(
   }
 }
 
+/** Normalizes persisted explorer records before hydration, including malformed or absent legacy values. */
 export function sanitizeExplorerPreferences(
   ui: PersistedUIState
 ): Pick<AppState, 'explorerDisplayRootByWorktree' | 'showDotfilesByWorktree'> {

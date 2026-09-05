@@ -18,6 +18,7 @@ import { discardStructuredAgentSessionLaunchOutbox } from '@/components/native-c
 import { clearWebSessionFocusIntentIfMatches } from '@/runtime/web-session-focus-intent'
 import { LOCAL_STRUCTURED_SESSION_OWNER } from '@/runtime/local-structured-session-owner'
 
+/** Builds a bulk cleanup patch and clears auxiliary warning records without requiring individual terminal teardown. */
 export function buildWorktreePurgeState(
   s: AppState,
   worktreeTargets: WorktreePurgeTargets
