@@ -110,6 +110,7 @@ export function applyRemoveWorktreeSuccessState(
       markdownFrontmatterVisible: omitByFileId(s.markdownFrontmatterVisible),
       // Why: editorCursorLine is keyed by fileId; clear it with the other per-file state so it doesn't leak.
       editorCursorLine: omitByFileId(s.editorCursorLine),
+      explorerDisplayRootByWorktree: omitByWorktree(s.explorerDisplayRootByWorktree),
       showDotfilesByWorktree: omitByWorktree(s.showDotfilesByWorktree),
       expandedDirs: omitByWorktree(s.expandedDirs),
       // Why: clear the huge-status marker so it doesn't linger after the worktree is gone.
