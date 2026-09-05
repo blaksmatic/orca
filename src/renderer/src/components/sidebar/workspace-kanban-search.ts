@@ -1,5 +1,7 @@
 import { isWorktreePaletteQueryTooLarge } from '@/lib/worktree-palette-query-bounds'
-import { searchWorktrees } from '@/lib/worktree-palette-search'
+import { searchWorktreeDocuments } from '@/lib/worktree-palette-search'
+import { buildWorktreePaletteDocuments } from '@/lib/worktree-palette-document'
+import type { PaletteDocument } from '@/lib/palette-match/palette-document'
 import type { Repo } from '../../../../shared/repo-types'
 import type { WorkspaceStatus, Worktree } from '../../../../shared/worktree/types'
 import {
@@ -18,10 +20,30 @@ export type WorkspaceKanbanLaneView = {
  * Returns `null` when no filtering is active — distinct from an empty set, which
  * means a real query matched nothing.
  */
+/**
+ * Builds the board's palette index once per worktree/repo identity.
+ *
+ * Why separate from the match: the index is identical across keystrokes, and building it inline
+ * meant normalizing and segmenting every indexed field of every worktree on every character —
+ * and again on every agent-status tick, which churns board identities while a query is active.
+ */
+export function buildWorkspaceBoardPaletteDocuments(args: {
+  worktrees: readonly Worktree[]
+  repoMap: ReadonlyMap<string, Repo>
+}): Map<string, PaletteDocument> {
+  // Why the board policy (#15170): a card may only be hidden by text printed on it, so
+  // palette-only evidence such as ports, reviews and automation runs is excluded.
+  return buildWorktreePaletteDocuments(args.worktrees, {
+    repoMap: args.repoMap,
+    evidencePolicy: 'board'
+  })
+}
+
 export function matchWorkspaceBoardWorktrees(args: {
   worktrees: Worktree[]
   query: string
   repoMap: Map<string, Repo>
+  documents?: ReadonlyMap<string, PaletteDocument>
 }): ReadonlySet<string> | null {
   if (!args.query.trim()) {
     return null
@@ -33,10 +55,14 @@ export function matchWorkspaceBoardWorktrees(args: {
   }
 
   const matched = new Set<string>()
-  // Why the board policy (#15170): a card may only be hidden by text printed on it, so
-  // palette-only evidence such as ports, reviews and automation runs is excluded.
-  for (const result of searchWorktrees(args.worktrees, args.query, args.repoMap, {
-    evidencePolicy: 'board'
+  const documents =
+    args.documents ??
+    buildWorkspaceBoardPaletteDocuments({ worktrees: args.worktrees, repoMap: args.repoMap })
+  for (const result of searchWorktreeDocuments({
+    worktrees: args.worktrees,
+    query: args.query,
+    documents,
+    repoMap: args.repoMap
   })) {
     if (result.matchedFields.length) {
       // Why (STA-4343): two hosts can publish the same id, and a board filter keyed on the
