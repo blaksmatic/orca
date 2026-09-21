@@ -83,6 +83,9 @@ export function useFileExplorerImport({
 
       void (async () => {
         try {
+          if (getRelativePathInsideRoot(destinationDir, displayRootRef.current) === null) {
+            return
+          }
           const operationGuard = captureFileExplorerOperationGuard(wtId, operationOwnerRef.current)
           operationGuard.assertCurrent()
           const { results } = await importExternalPathsToRuntime(

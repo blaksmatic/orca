@@ -76,5 +76,7 @@ it('keeps native drops on committed scope when a new scope render suspends', asy
   })
   await waitFor(() => expect(clearDrag).toHaveBeenCalledTimes(2))
   expect(selected).not.toHaveBeenCalled()
+  expect(mocks.importPaths).toHaveBeenCalledTimes(1)
+  expect(refresh).toHaveBeenCalledTimes(1)
   expect(mocks.subscribe).toHaveBeenCalledTimes(1)
 })

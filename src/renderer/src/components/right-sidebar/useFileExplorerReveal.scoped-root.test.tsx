@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { cleanup, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import type { Virtualizer } from '@tanstack/react-virtual'
+import { Virtualizer } from '@tanstack/react-virtual'
 import { useFileExplorerReveal } from './useFileExplorerReveal'
 import { useFileExplorerAutoReveal } from './useFileExplorerAutoReveal'
 import { createFileExplorerRowProjectionFromParts } from './file-explorer-row-projection'
@@ -40,7 +40,14 @@ function fixture(filePath = '/repo/packages/app/index.ts') {
     setSelectedPath: vi.fn(),
     setFlashingPath: vi.fn(),
     flashTimeoutRef: { current: null },
-    virtualizer: { scrollToIndex: vi.fn() } as unknown as Virtualizer<HTMLDivElement, Element>
+    virtualizer: new Virtualizer<HTMLDivElement, Element>({
+      count: 1,
+      getScrollElement: () => null,
+      estimateSize: () => 24,
+      scrollToFn: vi.fn(),
+      observeElementRect: vi.fn(),
+      observeElementOffset: vi.fn()
+    })
   }
 }
 
@@ -74,9 +81,11 @@ it('does not enqueue auto-reveal for an editor file outside scope', () => {
           filePath: '/repo/README.md',
           relativePath: 'README.md',
           worktreeId: 'wt',
-          mode: 'edit'
+          mode: 'edit',
+          language: 'markdown',
+          isDirty: false
         }
-      ] as never
+      ]
     })
   )
   expect(store.setState).not.toHaveBeenCalled()
