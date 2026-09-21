@@ -5,10 +5,12 @@ import { tmpdir } from 'node:os'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AnalyticsSessionIdStore } from './analytics-session-id-store'
 
-const { writeGate } = vi.hoisted(() => ({
+type WriteGate = { entered: (() => void) | null; wait: Promise<void> | null; fail: boolean }
+
+const { writeGate } = vi.hoisted((): { writeGate: WriteGate } => ({
   writeGate: {
-    entered: null as (() => void) | null,
-    wait: null as Promise<void> | null,
+    entered: null,
+    wait: null,
     fail: false
   }
 }))
@@ -16,7 +18,7 @@ vi.mock('node:fs/promises', async () => {
   const actual = await vi.importActual<typeof FsPromises>('node:fs/promises')
   return {
     ...actual,
-    open: (async (...args: Parameters<typeof actual.open>) => {
+    open: async (...args: Parameters<typeof actual.open>) => {
       if (args[1] === 'w') {
         writeGate.entered?.()
         if (writeGate.wait) {
@@ -27,7 +29,7 @@ vi.mock('node:fs/promises', async () => {
         }
       }
       return actual.open(...args)
-    }) as typeof actual.open
+    }
   }
 })
 
