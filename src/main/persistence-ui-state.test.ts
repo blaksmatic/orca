@@ -138,9 +138,11 @@ describe('Store', () => {
       explorerDisplayRootByWorktree: {
         'repo-1::/repo': '/',
         'repo-2::/repo': 'packages/app',
+        // @ts-expect-error Deliberately malformed input exercises runtime sanitization.
         'repo-3::/repo': false,
+        // @ts-expect-error Deliberately malformed prototype key exercises runtime sanitization.
         constructor: false
-      } as never
+      }
     })
 
     expect(store.getUI().explorerDisplayRootByWorktree).toEqual({

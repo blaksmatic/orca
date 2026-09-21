@@ -32,10 +32,10 @@ export function FileExplorerRootSelect({
         <TooltipTrigger asChild>
           <SelectTrigger
             size="sm"
-            className="data-[size=sm]:h-6 min-w-0 flex-1 gap-1 border-transparent px-1.5 py-0 text-xs text-muted-foreground shadow-none hover:bg-accent hover:text-foreground dark:bg-transparent dark:hover:bg-accent [&>span]:truncate [&_svg]:size-3"
+            className="min-w-0 flex-1"
             aria-label={translate('fileExplorer.root.label', 'Explorer root')}
           >
-            <SelectValue>
+            <SelectValue className="min-w-0">
               <span className="block min-w-0 truncate">{selectedLabel}</span>
             </SelectValue>
           </SelectTrigger>
@@ -50,13 +50,13 @@ export function FileExplorerRootSelect({
         align="start"
         sideOffset={4}
         collisionPadding={8}
-        className="w-80 max-w-[var(--radix-select-content-available-width)] border-border bg-popover shadow-floating backdrop-blur-none dark:border-border dark:bg-popover dark:shadow-floating [-webkit-app-region:no-drag]"
+        className="w-80 max-w-[var(--radix-select-content-available-width)] [-webkit-app-region:no-drag]"
       >
         {options.map((option) => (
           <SelectItem
             key={option.value}
             value={option.value}
-            className="text-xs [&>span:last-child]:min-w-0"
+            className="[&>span:last-child]:min-w-0"
           >
             <span className="block min-w-0 whitespace-normal [overflow-wrap:anywhere]">
               {option.value === FILE_EXPLORER_FULL_ROOT ? fullRootLabel : option.label}

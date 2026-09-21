@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import type { ComponentProps } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { expect, it } from 'vitest'
 import { FileExplorerFilesTreePane } from './FileExplorerFilesTreePane'
 import { FileExplorerTreeStatus } from './FileExplorerTreeStatus'
@@ -7,6 +8,7 @@ import { visit, type ReactElementLike } from './file-explorer-element-tree-test-
 
 type Props = ComponentProps<typeof FileExplorerFilesTreePane>
 function emptyPane(error?: string) {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This element-tree fixture supplies every field read by the empty pane; child components and event handlers are not executed.
   return FileExplorerFilesTreePane({
     worktreePath: '/repo',
     displayRootPath: '/repo/src',
@@ -43,3 +45,9 @@ it.each([undefined, 'Permission denied', ''])(
     expect(elements.some((element) => element.props?.role === 'status')).toBe(error !== undefined)
   }
 )
+
+it('renders an empty error message as a failed read rather than an empty directory', () => {
+  const markup = renderToStaticMarkup(<FileExplorerTreeStatus isLoading={false} error="" isEmpty />)
+  expect(markup).toContain('Could not load files for this workspace:')
+  expect(markup).not.toContain('No files in this workspace')
+})
