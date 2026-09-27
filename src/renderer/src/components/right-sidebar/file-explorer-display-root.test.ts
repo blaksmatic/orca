@@ -17,9 +17,15 @@ describe('sparse explorer projection', () => {
       isSparse: true,
       sparseDirectories: ['packages/app', 'packages/api']
     })
-    expect(resolveExplorerDisplayRootChoice(options)).toBe('packages/app')
+    expect(resolveExplorerDisplayRootChoice(options)).toBe('/')
     expect(resolveExplorerDisplayRootChoice(options, '/')).toBe('/')
-    expect(resolveExplorerDisplayRootChoice(options, 'removed')).toBe('packages/app')
+    expect(resolveExplorerDisplayRootChoice(options, 'packages/api')).toBe('packages/api')
+    expect(
+      resolveExplorerDisplayRootChoice(
+        getExplorerDisplayRootOptions({ isSparse: true, sparseDirectories: ['packages/app'] })
+      )
+    ).toBe('packages/app')
+    expect(resolveExplorerDisplayRootChoice(options, 'removed')).toBe('/')
     expect(getExplorerDisplayRootOptions({ sparseDirectories: ['src'] })).toBeNull()
     expect(resolveExplorerDisplayRootChoice(null, 'src')).toBe('/')
   })

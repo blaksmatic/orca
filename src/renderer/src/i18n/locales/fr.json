@@ -18497,6 +18497,9 @@
     "root": {
       "label": "Racine de l’explorateur",
       "full": "Racine du dépôt",
+      "viewing": "Vue : {{path}}",
+      "back": "Revenir à {{path}}",
+      "searchScope": "Portée : fichiers de l’espace de travail",
       "retry": "Réessayer"
     }
   }

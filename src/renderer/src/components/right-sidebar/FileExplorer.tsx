@@ -8,6 +8,8 @@ import {
   getExplorerDisplayDepth,
   getExplorerEffectiveExpanded
 } from './file-explorer-display-root'
+import { FileExplorerScopeNotice } from './FileExplorerScopeNotice'
+import { useFileExplorerRootNavigation } from './use-file-explorer-root-navigation'
 import { useFileExplorerScopeTransition } from './use-file-explorer-scope-transition'
 import { basename } from '@/lib/path'
 import { cn } from '@/lib/utils'
@@ -58,9 +60,9 @@ function FileExplorerFiles(): React.JSX.Element {
   const savedRoot = useAppStore((s) =>
     activeWorktreeId ? s.explorerDisplayRootByWorktree[activeWorktreeId] : undefined
   )
-  const setExplorerRoot = useAppStore((s) => s.setExplorerDisplayRootForWorktree)
   const rootOptions = useMemo(() => getExplorerDisplayRootOptions(activeWorktree), [activeWorktree])
   const rootChoice = resolveExplorerDisplayRootChoice(rootOptions, savedRoot)
+  const rootNavigation = useFileExplorerRootNavigation(activeWorktreeId, rootChoice, rootOptions)
   const worktreePath = activeWorktree?.path ?? null
   const displayRootPath = getExplorerDisplayRootPath(worktreePath, rootChoice)
   const displayDepth = getExplorerDisplayDepth(worktreePath, displayRootPath)
@@ -175,6 +177,7 @@ function FileExplorerFiles(): React.JSX.Element {
   // return, so a transient null worktree cannot unmount the tree's reset guard
   // and SSH generation refs and trigger a full cache-dropping reload on return.
   const paneState = useFileExplorerTreePaneState({
+    onRevealOutsideRoot: rootNavigation.revealOutsideRoot,
     activeWorktreeId,
     activeRepo,
     worktreePath,
@@ -215,16 +218,6 @@ function FileExplorerFiles(): React.JSX.Element {
     selection,
     setBgMenuOpen
   })
-  const handleRootChange = useCallback(
-    (value: string) => {
-      if (!activeWorktreeId) {
-        return
-      }
-      useAppStore.getState().clearPendingExplorerReveal()
-      setExplorerRoot(activeWorktreeId, value)
-    },
-    [activeWorktreeId, setExplorerRoot]
-  )
 
   if (!worktreePath) {
     return (
@@ -258,7 +251,7 @@ function FileExplorerFiles(): React.JSX.Element {
               ? {
                   options: rootOptions,
                   value: rootChoice,
-                  onValueChange: handleRootChange,
+                  onValueChange: rootNavigation.selectRoot,
                   disabled:
                     Boolean(paneState.dragDrop.dragSourcePath) ||
                     paneState.dragDrop.isNativeDragOver
@@ -278,6 +271,16 @@ function FileExplorerFiles(): React.JSX.Element {
           showDotfiles={showDotfiles}
           onToggleDotfiles={handleToggleDotfiles}
         />
+        {rootOptions && (
+          <FileExplorerScopeNotice
+            returnRoot={rootNavigation.returnRoot}
+            onSelectRoot={rootNavigation.selectRoot}
+            disabled={
+              Boolean(paneState.dragDrop.dragSourcePath) || paneState.dragDrop.isNativeDragOver
+            }
+            searching={!isFilesViewActive}
+          />
+        )}
         <FileExplorerQueryStrip view={explorerView} onSelectView={handleSelectExplorerView}>
           {/* Why: keep both query rows mounted and cross-fade so the Names/Contents
              switch does not remount or shift when changing modes. */}

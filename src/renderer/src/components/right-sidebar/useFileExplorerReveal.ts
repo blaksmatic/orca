@@ -9,6 +9,7 @@ import type { DirCache } from './file-explorer-types'
 import type { FileExplorerRowProjection } from './file-explorer-row-projection'
 
 type UseFileExplorerRevealParams = {
+  onRevealOutsideRoot?: () => void
   activeWorktreeId: string | null
   worktreePath: string | null
   displayRootPath?: string | null
@@ -33,6 +34,7 @@ type UseFileExplorerRevealParams = {
 
 /** Expands and selects reveal targets; explicit outside-scope requests restore full-root navigation. */
 export function useFileExplorerReveal({
+  onRevealOutsideRoot,
   activeWorktreeId,
   worktreePath,
   displayRootPath = worktreePath,
@@ -99,9 +101,13 @@ export function useFileExplorerReveal({
       getRelativePathInsideRoot(pendingExplorerReveal.filePath, worktreePath) !== null &&
       getRelativePathInsideRoot(pendingExplorerReveal.filePath, displayRootPath) === null
     ) {
-      useAppStore
-        .getState()
-        .setExplorerDisplayRootForWorktree(activeWorktreeId, FILE_EXPLORER_FULL_ROOT)
+      if (onRevealOutsideRoot) {
+        onRevealOutsideRoot()
+      } else {
+        useAppStore
+          .getState()
+          .setExplorerDisplayRootForWorktree(activeWorktreeId, FILE_EXPLORER_FULL_ROOT)
+      }
       return
     }
     if (!pendingRevealAncestorDirs) {
@@ -158,6 +164,7 @@ export function useFileExplorerReveal({
     loadDir,
     pendingExplorerReveal,
     pendingRevealAncestorDirs,
+    onRevealOutsideRoot,
     worktreePath,
     displayRootPath
   ])

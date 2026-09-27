@@ -18497,6 +18497,9 @@
     "root": {
       "label": "탐색기 루트",
       "full": "저장소 루트",
+      "viewing": "보기: {{path}}",
+      "back": "{{path}}(으)로 돌아가기",
+      "searchScope": "검색 범위: 작업 공간 파일",
       "retry": "다시 시도"
     }
   }

@@ -22,6 +22,7 @@ import type { useFileExplorerSelection } from './useFileExplorerSelection'
 import type { useFileExplorerTree } from './useFileExplorerTree'
 
 type UseFileExplorerTreePaneStateParams = {
+  onRevealOutsideRoot?: () => void
   activeWorktreeId: string | null
   activeRepo: Repo | null
   worktreePath: string | null
@@ -66,6 +67,7 @@ type UseFileExplorerTreePaneStateResult = {
  * whole directory cache — when the same workspace comes back.
  */
 export function useFileExplorerTreePaneState({
+  onRevealOutsideRoot,
   activeWorktreeId,
   activeRepo,
   worktreePath,
@@ -225,6 +227,7 @@ export function useFileExplorerTreePaneState({
   })
 
   const rowScrolling = useFileExplorerRowScrolling({
+    onRevealOutsideRoot,
     displayRootPath,
     visibleRowCount,
     inlineInputIndex: inlineInputState.inlineInputIndex,

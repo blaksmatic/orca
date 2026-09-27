@@ -13,6 +13,7 @@ type UseFileExplorerRowScrollingParams = {
   inlineInputIndex: number
   rowProjection: FileExplorerRowProjection
   scrollRef: RefObject<HTMLDivElement | null>
+  onRevealOutsideRoot?: () => void
   activeWorktreeId: string | null
   worktreePath: string | null
   displayRootPath?: string | null
@@ -37,6 +38,7 @@ type UseFileExplorerRowScrollingResult = {
 
 /** Decides which explorer row is measured and scrolled into view. */
 export function useFileExplorerRowScrolling({
+  onRevealOutsideRoot,
   visibleRowCount,
   inlineInputIndex,
   rowProjection,
@@ -80,6 +82,7 @@ export function useFileExplorerRowScrolling({
   })
 
   const cancelRevealTimers = useFileExplorerReveal({
+    onRevealOutsideRoot,
     activeWorktreeId,
     worktreePath,
     displayRootPath,

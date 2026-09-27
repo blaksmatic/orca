@@ -18497,6 +18497,9 @@
     "root": {
       "label": "文件浏览器根目录",
       "full": "仓库根目录",
+      "viewing": "当前视图：{{path}}",
+      "back": "返回 {{path}}",
+      "searchScope": "搜索范围：工作区文件",
       "retry": "重试"
     }
   }

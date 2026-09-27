@@ -15373,6 +15373,9 @@
     "root": {
       "label": "Raíz del explorador",
       "full": "Raíz del repositorio",
+      "viewing": "Viendo: {{path}}",
+      "back": "Volver a {{path}}",
+      "searchScope": "Ámbito: archivos del espacio de trabajo",
       "retry": "Reintentar"
     }
   }

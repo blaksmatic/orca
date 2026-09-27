@@ -18514,7 +18514,10 @@
   "fileExplorer": {
     "root": {
       "label": "Explorer root",
-      "full": "Full repo root",
+      "full": "Repository root",
+      "viewing": "Viewing: {{path}}",
+      "back": "Back to {{path}}",
+      "searchScope": "Search scope: workspace files",
       "retry": "Retry"
     }
   }

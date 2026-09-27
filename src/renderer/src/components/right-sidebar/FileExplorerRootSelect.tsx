@@ -21,7 +21,7 @@ export function FileExplorerRootSelect({
   options,
   ...props
 }: FileExplorerRootSelectProps): React.JSX.Element {
-  const fullRootLabel = translate('fileExplorer.root.full', 'Full repo root')
+  const fullRootLabel = translate('fileExplorer.root.full', 'Repository root')
   const selectedLabel =
     props.value === FILE_EXPLORER_FULL_ROOT
       ? fullRootLabel
@@ -36,7 +36,11 @@ export function FileExplorerRootSelect({
             aria-label={translate('fileExplorer.root.label', 'Explorer root')}
           >
             <SelectValue className="min-w-0">
-              <span className="block min-w-0 truncate">{selectedLabel}</span>
+              <span className="block min-w-0 truncate">
+                {translate('fileExplorer.root.viewing', 'Viewing: {{path}}', {
+                  path: selectedLabel
+                })}
+              </span>
             </SelectValue>
           </SelectTrigger>
         </TooltipTrigger>

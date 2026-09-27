@@ -32,21 +32,23 @@ export function getExplorerDisplayRootOptions(
     ? [
         {
           value: FILE_EXPLORER_FULL_ROOT,
-          label: translate('fileExplorer.root.full', 'Full repo root')
+          label: translate('fileExplorer.root.full', 'Repository root')
         },
         ...dirs.map((dir) => ({ value: dir, label: dir }))
       ]
     : null
 }
 
-/** Honors a valid saved choice; otherwise defaults to the first sparse directory or the full-root sentinel. */
+/** Focuses a sole sparse directory; multiple directories retain repository context unless explicitly scoped. */
 export function resolveExplorerDisplayRootChoice(
   options: ExplorerRootOption[] | null,
   saved?: string
 ): string {
   return options?.some((option) => option.value === saved)
     ? saved!
-    : (options?.[1]?.value ?? FILE_EXPLORER_FULL_ROOT)
+    : options?.length === 2
+      ? options[1].value
+      : FILE_EXPLORER_FULL_ROOT
 }
 
 /** Resolves a display choice against the actual workspace root; the full-root sentinel leaves that root intact. */
