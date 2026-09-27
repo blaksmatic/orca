@@ -1,3 +1,7 @@
+import {
+  setupTelemetryClientTest,
+  cleanupTelemetryClientTest
+} from '../telemetry/client-test-harness'
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import type * as FsPromises from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -106,6 +110,17 @@ class TestUsageStore extends UsageProviderStoreLifecycle<
         getAllWorktreeMeta: () => ({})
       },
       {
+        tokenUsage: {
+          provider: 'claude',
+          selectSessions: (state) =>
+            state.sessions.map((session) => ({
+              providerSessionId: session.id,
+              input_tokens: 10,
+              output_tokens: 2,
+              cached_input_tokens: 3,
+              cache_write_input_tokens: 1
+            }))
+        },
         logTag: '[test-usage]',
         resolveCacheFile: () => cacheFile,
         createDefaultState: makeState,
@@ -154,6 +169,32 @@ describe('UsageProviderStoreLifecycle', () => {
     await Promise.all(stores.map((store) => store.flush()))
     rmSync(tempDirectory, { recursive: true, force: true })
     vi.restoreAllMocks()
+  })
+
+  it('reports enabled scans and preserves revisions when the usage cache is rebuilt', async () => {
+    const telemetry = setupTelemetryClientTest()
+    try {
+      const cacheFile = join(tempDirectory, 'provider.json')
+      scan.mockResolvedValue({ ...emptyScanResult(), sessions: [{ id: 'provider-session' }] })
+      const original = createStore(cacheFile)
+      await original.refresh(true)
+      expect(telemetry.mock.capture).not.toHaveBeenCalled()
+      await original.setEnabled(true)
+      await original.refresh(true)
+      const first = telemetry.mock.capture.mock.calls[0]?.[0]
+      expect(first).toMatchObject({
+        event: 'agent_token_usage',
+        properties: { revision: 1, input_tokens: 10 }
+      })
+      await original.flush()
+      rmSync(cacheFile)
+      const rebuilt = createStore(cacheFile)
+      await rebuilt.setEnabled(true)
+      await rebuilt.refresh(true)
+      expect(telemetry.mock.capture.mock.calls[1]?.[0]).toEqual(first)
+    } finally {
+      cleanupTelemetryClientTest(telemetry.envStash)
+    }
   })
 
   it('keeps analytics identity separate from usage cache rebuilds and never puts it in snapshots', async () => {
