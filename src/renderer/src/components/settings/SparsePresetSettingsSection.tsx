@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { SparsePreset } from '../../../../shared/worktree/create-types'
 import { useAppStore } from '../../store'
-import { parseSparsePresetDirectories } from '@/lib/sparse-preset-draft'
+import { parseSparsePresetDirectories, validateSparsePresetName } from '@/lib/sparse-preset-draft'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { Button } from '../ui/button'
 import { getSparsePresetOperationErrorMessage } from './sparse-preset-operation-error'
@@ -46,22 +46,9 @@ export function SparsePresetSettingsSection({
   const sortedPresets = presets ?? []
   const parsedDirectories = draft ? parseSparsePresetDirectories(draft.directoriesText) : null
   const trimmedName = draft?.name.trim() ?? ''
-  const lowerName = trimmedName.toLowerCase()
-  const collidingPreset =
-    draft && trimmedName
-      ? (sortedPresets.find(
-          (preset) => preset.id !== draft.presetId && preset.name.toLowerCase() === lowerName
-        ) ?? null)
-      : null
-
-  const nameError =
-    draft && trimmedName.length === 0
-      ? 'Name is required.'
-      : trimmedName.length > 80
-        ? 'Name must be 80 characters or fewer.'
-        : collidingPreset
-          ? `"${collidingPreset.name}" already exists.`
-          : null
+  const nameError = draft
+    ? validateSparsePresetName(draft.name, sortedPresets, draft.presetId)
+    : null
   const canSaveDraft =
     !!draft && !submitting && !nameError && parsedDirectories !== null && !parsedDirectories.error
   const visibleError = operationError ?? loadError ?? null
@@ -196,6 +183,7 @@ export function SparsePresetSettingsSection({
       {draft ? (
         <SparsePresetDraftEditor
           draft={draft}
+          operationError={operationError}
           setDraft={setDraft}
           nameError={nameError}
           parsedDirectories={parsedDirectories}

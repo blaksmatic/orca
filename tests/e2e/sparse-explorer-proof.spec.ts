@@ -1,21 +1,46 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import os from 'node:os'
+import { runProcess } from '../../src/shared/child-process/run-process'
 import { test as base, expect } from './helpers/orca-app'
 import { openFileExplorer } from './helpers/file-explorer'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
+async function git(cwd: string, args: string[]): Promise<void> {
+  const result = await runProcess({ program: 'git', args, cwd })
+  if (result.code !== 0) {
+    throw new Error(result.stderr)
+  }
+}
+
 const test = base.extend({
+  minimumSeededWorktreeCount: 1,
   seededRepoPath: async ({ testRepoPath }, provideFixture) => {
+    const fixtureRoot = mkdtempSync(path.join(os.tmpdir(), 'orca-sparse-proof-'))
+    const sparseRepo = path.join(fixtureRoot, 'repo')
+    await git(fixtureRoot, ['clone', '--local', testRepoPath, sparseRepo])
+    await git(sparseRepo, ['config', 'user.email', 'sparse-proof@example.invalid'])
+    await git(sparseRepo, ['config', 'user.name', 'Sparse proof'])
     for (const [name, content] of [
+      ['omitted/private.txt', 'Not checked out\n'],
       ['apps/web/src/App.tsx', 'export const App = () => "Web app"\n'],
       ['apps/web/package.json', '{"name":"web-app"}\n'],
       ['packages/ui/src/Button.tsx', 'export const Button = () => "Button"\n']
     ]) {
-      const file = path.join(testRepoPath, name)
+      const file = path.join(sparseRepo, name)
       mkdirSync(path.dirname(file), { recursive: true })
       writeFileSync(file, content)
     }
-    await provideFixture(testRepoPath)
+    await git(sparseRepo, ['add', '.'])
+    await git(sparseRepo, ['commit', '-m', 'Sparse fixture'])
+    await git(sparseRepo, ['sparse-checkout', 'init', '--cone'])
+    await git(sparseRepo, ['sparse-checkout', 'set', '--', 'apps/web'])
+    expect(existsSync(path.join(sparseRepo, 'omitted', 'private.txt'))).toBe(false)
+    try {
+      await provideFixture(sparseRepo)
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true })
+    }
   }
 })
 
@@ -73,6 +98,7 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
     await testInfo.attach(name, { path: file, contentType: 'image/png' })
   }
   await capture('single-folder')
+  await git(workspace.path, ['sparse-checkout', 'set', '--', 'apps/web', 'packages/ui'])
   await orcaPage.evaluate(
     ({ workspace }) => {
       const store = window.__store!
@@ -136,6 +162,8 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
     })
     await expect(orcaPage.locator('html')).toHaveClass(/dark/)
     await capture('saved-choice-dark')
+    await git(workspace.path, ['sparse-checkout', 'disable'])
+    expect(existsSync(path.join(workspace.path, 'omitted', 'private.txt'))).toBe(true)
     await orcaPage.evaluate(
       ({ workspace }) => {
         const store = window.__store!

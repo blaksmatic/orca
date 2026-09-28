@@ -3277,7 +3277,7 @@
             "missing": {
               "tui": {
                 "title": "This ZCode build has no terminal UI",
-                "description": "Orca's hooks installed correctly \u2014 the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Orca to confirm."
+                "description": "Orca's hooks installed correctly — the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Orca to confirm."
               }
             }
           },
@@ -18518,7 +18518,28 @@
       "viewing": "Viewing: {{path}}",
       "back": "Back to {{path}}",
       "searchScope": "Search scope: workspace files",
-      "retry": "Retry"
+      "retry": "Retry",
+      "omittedFiles": "Files omitted by sparse checkout are not searched.",
+      "viewOnly": "Sparse checkout · View changes do not change checked-out files."
     }
+  },
+  "sparsePreset": {
+    "name": "Name",
+    "namePlaceholder": "Web app and shared UI",
+    "directories": "Directories",
+    "pathHelp": "One repository-relative directory per line. Spaces within a path are preserved.",
+    "directoryCount": "{{count}} directories selected",
+    "coneHelp": "Git also keeps files at the repository root and along the parent folders of these directories.",
+    "futureHelp": "This preset is used when creating a workspace. Saving it does not change existing checkouts or the explorer view.",
+    "cancel": "Cancel",
+    "save": "Save preset",
+    "new": "New sparse preset",
+    "edit": "Edit sparse preset",
+    "description": "Choose the folders a new workspace checks out.",
+    "saveFailed": "Could not save the preset. Try again.",
+    "nameRequired": "Name is required.",
+    "nameTooLong": "Name must be 80 characters or fewer.",
+    "nameExists": "A preset named “{{name}}” already exists.",
+    "loading": "Loading presets..."
   }
 }

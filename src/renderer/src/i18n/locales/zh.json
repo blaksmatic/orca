@@ -18500,7 +18500,28 @@
       "viewing": "当前视图：{{path}}",
       "back": "返回 {{path}}",
       "searchScope": "搜索范围：工作区文件",
-      "retry": "重试"
+      "retry": "重试",
+      "omittedFiles": "稀疏检出中排除的文件不会被搜索。",
+      "viewOnly": "稀疏检出 · 更改视图不会更改已检出的文件。"
     }
+  },
+  "sparsePreset": {
+    "nameRequired": "请输入名称。",
+    "nameTooLong": "名称不能超过80个字符。",
+    "nameExists": "名为“{{name}}”的预设已存在。",
+    "name": "名称",
+    "namePlaceholder": "Web应用与共享UI",
+    "directories": "目录",
+    "pathHelp": "每行输入一个相对于仓库的目录。路径中的空格会保留。",
+    "directoryCount": "已选择 {{count}} 个目录",
+    "coneHelp": "Git还会保留仓库根目录以及这些目录的父文件夹中的文件。",
+    "futureHelp": "此预设用于创建工作区。保存不会更改现有检出或资源管理器视图。",
+    "cancel": "取消",
+    "save": "保存预设",
+    "new": "新建稀疏检出预设",
+    "edit": "编辑稀疏检出预设",
+    "description": "选择新工作区要检出的文件夹。",
+    "saveFailed": "无法保存预设。请重试。",
+    "loading": "正在加载预设..."
   }
 }

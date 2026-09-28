@@ -5,14 +5,12 @@ import { Command, CommandItem, CommandList, CommandSeparator } from '@/component
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/utils'
-import { parseSparsePresetDirectories } from '@/lib/sparse-preset-draft'
+import { parseSparsePresetDirectories, validateSparsePresetName } from '@/lib/sparse-preset-draft'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import type { SparsePreset } from '../../../../shared/worktree/create-types'
 import { translate } from '@/i18n/i18n'
-import {
-  SparseCheckoutPresetDraftForm,
-  type SparsePresetDraft
-} from './SparseCheckoutPresetDraftForm'
+import type { SparsePresetDraft } from './SparseCheckoutPresetDraftForm'
+import { SparsePresetEditorDialog } from './SparsePresetEditorDialog'
 
 type SparseCheckoutPresetSelectProps = {
   repoId: string
@@ -39,6 +37,8 @@ export default function SparseCheckoutPresetSelect({
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<SparsePresetDraft | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [operationError, setOperationError] = useState<string | null>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
   const nameInputFocusFrameRef = useRef<number | null>(null)
   const mountedRef = useMountedRef()
@@ -53,21 +53,9 @@ export default function SparseCheckoutPresetSelect({
   )
   const parsedDirectories = draft ? parseSparsePresetDirectories(draft.directoriesText) : null
   const trimmedName = draft?.name.trim() ?? ''
-  const nameCollision =
-    draft && trimmedName
-      ? (visiblePresets.find(
-          (preset) =>
-            preset.id !== draft.presetId && preset.name.toLowerCase() === trimmedName.toLowerCase()
-        ) ?? null)
-      : null
-  const nameError =
-    draft && trimmedName.length === 0
-      ? 'Name is required.'
-      : trimmedName.length > 80
-        ? 'Name must be 80 characters or fewer.'
-        : nameCollision
-          ? `"${nameCollision.name}" already exists.`
-          : null
+  const nameError = draft
+    ? validateSparsePresetName(draft.name, visiblePresets, draft.presetId)
+    : null
   const canSave =
     draft !== null &&
     !submitting &&
@@ -101,6 +89,8 @@ export default function SparseCheckoutPresetSelect({
       if (disabled || !presetsLoaded) {
         return
       }
+      setOpen(false)
+      setOperationError(null)
       setDraft(nextDraft)
       cancelNameInputFocusFrame()
       nameInputFocusFrameRef.current = requestAnimationFrame(() => {
@@ -141,6 +131,7 @@ export default function SparseCheckoutPresetSelect({
       return
     }
     setSubmitting(true)
+    setOperationError(null)
     try {
       const saved = await saveSparsePreset({
         repoId,
@@ -154,6 +145,16 @@ export default function SparseCheckoutPresetSelect({
         }
         setDraft(null)
         setOpen(false)
+      } else if (mountedRef.current) {
+        setOperationError(
+          translate('sparsePreset.saveFailed', 'Could not save the preset. Try again.')
+        )
+      }
+    } catch {
+      if (mountedRef.current) {
+        setOperationError(
+          translate('sparsePreset.saveFailed', 'Could not save the preset. Try again.')
+        )
       }
     } finally {
       if (mountedRef.current) {
@@ -194,171 +195,186 @@ export default function SparseCheckoutPresetSelect({
   )
 
   const triggerLabel = isLoadingPresets
-    ? 'Loading presets...'
+    ? translate('sparsePreset.loading', 'Loading presets...')
     : hasPresetLoadError
-      ? 'Retry loading presets'
+      ? translate(
+          'auto.components.sparse.SparseCheckoutPresetSelect.a683a4bc8e',
+          'Retry loading presets'
+        )
       : !presetsLoaded
-        ? 'Load presets'
+        ? translate('auto.components.sparse.SparseCheckoutPresetSelect.16223dde6a', 'Load presets')
         : selectedPreset
           ? selectedPreset.name
-          : 'Off'
+          : translate('auto.components.sparse.SparseCheckoutPresetSelect.c7f9b3f0c1', 'Off')
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (nextOpen && presetsLoading) {
-          setOpen(false)
-          setDraft(null)
-          return
-        }
-        setOpen(nextOpen)
-        if (!nextOpen) {
-          setDraft(null)
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          aria-busy={isLoadingPresets}
-          disabled={disabled || isLoadingPresets}
-          className="h-9 w-full justify-between border-input px-3 text-sm font-normal text-foreground focus:border-ring focus:ring-[3px] focus:ring-ring/50"
-        >
-          <span className="truncate">{triggerLabel}</span>
-          {isLoadingPresets ? (
-            <LoaderCircle className="size-3.5 animate-spin opacity-60" />
-          ) : hasPresetLoadError || !presetsLoaded ? (
-            <RefreshCcw className="size-3.5 opacity-60" />
-          ) : (
-            <ChevronsUpDown className="size-3.5 opacity-50" />
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="popover-scroll-content max-h-[min(var(--radix-popover-content-available-height),24rem)] w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] overflow-y-auto p-0 scrollbar-sleek"
-        onOpenAutoFocus={(event) => event.preventDefault()}
+    <>
+      <Popover
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (nextOpen && presetsLoading) {
+            setOpen(false)
+            setDraft(null)
+            return
+          }
+          setOpen(nextOpen)
+          if (!nextOpen) {
+            setDraft(null)
+          }
+        }}
       >
-        {draft ? (
-          <SparseCheckoutPresetDraftForm
-            draft={draft}
-            parsedDirectories={parsedDirectories}
-            nameError={nameError}
-            submitting={submitting}
-            canSave={canSave}
-            setNameInputNode={setNameInputNode}
-            onDraftChange={setDraft}
-            onCancel={() => setDraft(null)}
-            onSave={() => void handleSaveDraft()}
-          />
-        ) : !presetsLoaded ? (
-          <div className="p-1">
-            {hasPresetLoadError ? (
-              <div className="px-2 py-1.5 text-[11px] text-destructive">
-                <span className="break-words">{presetsLoadError}</span>
-              </div>
-            ) : null}
-            <button
-              type="button"
-              className="flex h-9 w-full items-center gap-2 rounded-md px-2 text-left text-xs hover:bg-accent hover:text-accent-foreground"
-              onClick={handleRetryLoadPresets}
-            >
-              <RefreshCcw className="size-3.5 text-muted-foreground" />
-              <span className="truncate">
-                {hasPresetLoadError
-                  ? translate(
-                      'auto.components.sparse.SparseCheckoutPresetSelect.a683a4bc8e',
-                      'Retry loading presets'
-                    )
-                  : translate(
-                      'auto.components.sparse.SparseCheckoutPresetSelect.16223dde6a',
-                      'Load presets'
-                    )}
-              </span>
-            </button>
-          </div>
-        ) : (
-          // Why: cmdk Command/CommandItem so this dropdown matches the other composer pickers
-          // (run-target, project, agent) — same padding, keyboard-highlight, and check placement.
-          <Command value={selectedPreset ? `preset:${selectedPreset.id}` : 'off'}>
-            <CommandList>
-              <CommandItem
-                value="off"
-                onSelect={handleSelectOff}
-                className="items-center gap-2 px-3 py-2"
-              >
-                <Check className={cn('size-4', selectedPreset ? 'opacity-0' : 'opacity-100')} />
-                <span className="truncate">
-                  {translate('auto.components.sparse.SparseCheckoutPresetSelect.c7f9b3f0c1', 'Off')}
-                </span>
-              </CommandItem>
-              {visiblePresets.length > 0 ? (
-                <>
-                  <CommandSeparator />
-                  {visiblePresets.map((preset) => (
-                    <CommandItem
-                      key={preset.id}
-                      value={`preset:${preset.id}`}
-                      onSelect={() => handleSelectPreset(preset)}
-                      className="items-center gap-2 px-3 py-2"
-                    >
-                      <Check
-                        className={cn(
-                          'size-4 shrink-0',
-                          selectedPreset?.id === preset.id ? 'opacity-100' : 'opacity-0'
-                        )}
-                      />
-                      <span className="min-w-0 flex-1 truncate">{preset.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        aria-label={translate(
-                          'auto.components.sparse.SparseCheckoutPresetSelect.7c3275d307',
-                          'Edit {{value0}}',
-                          { value0: preset.name }
-                        )}
-                        className="ml-1 size-6 shrink-0 rounded-md text-muted-foreground hover:bg-background/35 hover:text-foreground"
-                        // Why: the pencil opens the edit draft; stop the event so cmdk doesn't
-                        // also select the preset row underneath it.
-                        onPointerDown={(event) => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                        }}
-                        onClick={(event) => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                          startEditPreset(preset)
-                        }}
-                      >
-                        <Pencil className="size-3.5" />
-                      </Button>
-                    </CommandItem>
-                  ))}
-                </>
+        <PopoverTrigger asChild>
+          <Button
+            ref={triggerRef}
+            type="button"
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            aria-busy={isLoadingPresets}
+            disabled={disabled || isLoadingPresets}
+            className="h-9 w-full justify-between border-input px-3 text-sm font-normal text-foreground focus:border-ring focus:ring-[3px] focus:ring-ring/50"
+          >
+            <span className="truncate">{triggerLabel}</span>
+            {isLoadingPresets ? (
+              <LoaderCircle className="size-3.5 animate-spin opacity-60" />
+            ) : hasPresetLoadError || !presetsLoaded ? (
+              <RefreshCcw className="size-3.5 opacity-60" />
+            ) : (
+              <ChevronsUpDown className="size-3.5 opacity-50" />
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="popover-scroll-content max-h-[min(var(--radix-popover-content-available-height),24rem)] w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] overflow-y-auto p-0 scrollbar-sleek"
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
+          {!presetsLoaded ? (
+            <div className="p-1">
+              {hasPresetLoadError ? (
+                <div className="px-2 py-1.5 text-[11px] text-destructive">
+                  <span className="break-words">{presetsLoadError}</span>
+                </div>
               ) : null}
-              <CommandSeparator />
-              <CommandItem
-                value="new-preset"
-                onSelect={startNewPreset}
-                className="items-center gap-2 px-3 py-2 text-muted-foreground"
+              <button
+                type="button"
+                className="flex h-9 w-full items-center gap-2 rounded-md px-2 text-left text-xs hover:bg-accent hover:text-accent-foreground"
+                onClick={handleRetryLoadPresets}
               >
-                <Plus className="size-4 shrink-0" />
+                <RefreshCcw className="size-3.5 text-muted-foreground" />
                 <span className="truncate">
-                  {translate(
-                    'auto.components.sparse.SparseCheckoutPresetSelect.c4ac80151d',
-                    'New preset'
-                  )}
+                  {hasPresetLoadError
+                    ? translate(
+                        'auto.components.sparse.SparseCheckoutPresetSelect.a683a4bc8e',
+                        'Retry loading presets'
+                      )
+                    : translate(
+                        'auto.components.sparse.SparseCheckoutPresetSelect.16223dde6a',
+                        'Load presets'
+                      )}
                 </span>
-              </CommandItem>
-            </CommandList>
-          </Command>
-        )}
-      </PopoverContent>
-    </Popover>
+              </button>
+            </div>
+          ) : (
+            // Why: cmdk Command/CommandItem so this dropdown matches the other composer pickers
+            // (run-target, project, agent) — same padding, keyboard-highlight, and check placement.
+            <Command value={selectedPreset ? `preset:${selectedPreset.id}` : 'off'}>
+              <CommandList>
+                <CommandItem
+                  value="off"
+                  onSelect={handleSelectOff}
+                  className="items-center gap-2 px-3 py-2"
+                >
+                  <Check className={cn('size-4', selectedPreset ? 'opacity-0' : 'opacity-100')} />
+                  <span className="truncate">
+                    {translate(
+                      'auto.components.sparse.SparseCheckoutPresetSelect.c7f9b3f0c1',
+                      'Off'
+                    )}
+                  </span>
+                </CommandItem>
+                {visiblePresets.length > 0 ? (
+                  <>
+                    <CommandSeparator />
+                    {visiblePresets.map((preset) => (
+                      <CommandItem
+                        key={preset.id}
+                        value={`preset:${preset.id}`}
+                        onSelect={() => handleSelectPreset(preset)}
+                        className="items-center gap-2 px-3 py-2"
+                      >
+                        <Check
+                          className={cn(
+                            'size-4 shrink-0',
+                            selectedPreset?.id === preset.id ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
+                        <span className="min-w-0 flex-1 truncate">{preset.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          aria-label={translate(
+                            'auto.components.sparse.SparseCheckoutPresetSelect.7c3275d307',
+                            'Edit {{value0}}',
+                            { value0: preset.name }
+                          )}
+                          className="ml-1 size-6 shrink-0 rounded-md text-muted-foreground hover:bg-background/35 hover:text-foreground"
+                          // Why: the pencil opens the edit draft; stop the event so cmdk doesn't
+                          // also select the preset row underneath it.
+                          onPointerDown={(event) => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                          }}
+                          onClick={(event) => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            startEditPreset(preset)
+                          }}
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+                      </CommandItem>
+                    ))}
+                  </>
+                ) : null}
+                <CommandSeparator />
+                <CommandItem
+                  value="new-preset"
+                  onSelect={startNewPreset}
+                  className="items-center gap-2 px-3 py-2 text-muted-foreground"
+                >
+                  <Plus className="size-4 shrink-0" />
+                  <span className="truncate">
+                    {translate(
+                      'auto.components.sparse.SparseCheckoutPresetSelect.c4ac80151d',
+                      'New preset'
+                    )}
+                  </span>
+                </CommandItem>
+              </CommandList>
+            </Command>
+          )}
+        </PopoverContent>
+      </Popover>
+      {draft ? (
+        <SparsePresetEditorDialog
+          draft={draft}
+          parsedDirectories={parsedDirectories}
+          nameError={nameError}
+          submitting={submitting}
+          canSave={canSave}
+          setNameInputNode={setNameInputNode}
+          onDraftChange={setDraft}
+          onCancel={() => setDraft(null)}
+          onSave={() => void handleSaveDraft()}
+          operationError={operationError}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            triggerRef.current?.focus()
+          }}
+        />
+      ) : null}
+    </>
   )
 }

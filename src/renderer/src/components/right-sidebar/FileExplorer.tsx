@@ -271,7 +271,7 @@ function FileExplorerFiles(): React.JSX.Element {
           showDotfiles={showDotfiles}
           onToggleDotfiles={handleToggleDotfiles}
         />
-        {rootOptions && (
+        {activeWorktree?.isSparse && (
           <FileExplorerScopeNotice
             returnRoot={rootNavigation.returnRoot}
             onSelectRoot={rootNavigation.selectRoot}
@@ -279,6 +279,7 @@ function FileExplorerFiles(): React.JSX.Element {
               Boolean(paneState.dragDrop.dragSourcePath) || paneState.dragDrop.isNativeDragOver
             }
             searching={!isFilesViewActive}
+            sparse={!!activeWorktree?.isSparse}
           />
         )}
         <FileExplorerQueryStrip view={explorerView} onSelectView={handleSelectExplorerView}>

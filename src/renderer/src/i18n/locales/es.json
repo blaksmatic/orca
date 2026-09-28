@@ -15376,7 +15376,28 @@
       "viewing": "Viendo: {{path}}",
       "back": "Volver a {{path}}",
       "searchScope": "Ámbito: archivos del espacio de trabajo",
-      "retry": "Reintentar"
+      "retry": "Reintentar",
+      "omittedFiles": "Los archivos excluidos por el checkout disperso no se buscan.",
+      "viewOnly": "Checkout disperso · Cambiar la vista no cambia los archivos extraídos."
     }
+  },
+  "sparsePreset": {
+    "nameRequired": "El nombre es obligatorio.",
+    "nameTooLong": "El nombre debe tener 80 caracteres o menos.",
+    "nameExists": "Ya existe un preajuste llamado «{{name}}».",
+    "name": "Nombre",
+    "namePlaceholder": "Aplicación web e IU compartida",
+    "directories": "Directorios",
+    "pathHelp": "Un directorio relativo al repositorio por línea. Se conservan los espacios dentro de las rutas.",
+    "directoryCount": "{{count}} directorios seleccionados",
+    "coneHelp": "Git también conserva los archivos de la raíz del repositorio y de las carpetas superiores de estos directorios.",
+    "futureHelp": "Este preajuste se usa al crear un espacio de trabajo. Guardarlo no cambia los checkouts existentes ni la vista del explorador.",
+    "cancel": "Cancelar",
+    "save": "Guardar preajuste",
+    "new": "Nuevo preajuste de checkout disperso",
+    "edit": "Editar preajuste de checkout disperso",
+    "description": "Elige las carpetas que se extraerán en un nuevo espacio de trabajo.",
+    "saveFailed": "No se pudo guardar el preajuste. Inténtalo de nuevo.",
+    "loading": "Cargando preajustes..."
   }
 }

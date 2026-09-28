@@ -18500,7 +18500,28 @@
       "viewing": "Vue : {{path}}",
       "back": "Revenir à {{path}}",
       "searchScope": "Portée : fichiers de l’espace de travail",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "omittedFiles": "Les fichiers exclus par le checkout partiel ne sont pas recherchés.",
+      "viewOnly": "Checkout partiel · Changer de vue ne modifie pas les fichiers extraits."
     }
+  },
+  "sparsePreset": {
+    "nameRequired": "Le nom est obligatoire.",
+    "nameTooLong": "Le nom doit contenir au maximum 80 caractères.",
+    "nameExists": "Un préréglage nommé « {{name}} » existe déjà.",
+    "name": "Nom",
+    "namePlaceholder": "Application web et interface partagée",
+    "directories": "Répertoires",
+    "pathHelp": "Un répertoire relatif au dépôt par ligne. Les espaces dans les chemins sont conservés.",
+    "directoryCount": "{{count}} répertoires sélectionnés",
+    "coneHelp": "Git conserve également les fichiers à la racine du dépôt et dans les dossiers parents de ces répertoires.",
+    "futureHelp": "Ce préréglage est utilisé à la création d’un espace de travail. L’enregistrer ne modifie ni les checkouts existants ni la vue de l’explorateur.",
+    "cancel": "Annuler",
+    "save": "Enregistrer le préréglage",
+    "new": "Nouveau préréglage de checkout partiel",
+    "edit": "Modifier le préréglage de checkout partiel",
+    "description": "Choisissez les dossiers à extraire dans un nouvel espace de travail.",
+    "saveFailed": "Impossible d’enregistrer le préréglage. Réessayez.",
+    "loading": "Chargement des préréglages..."
   }
 }

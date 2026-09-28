@@ -7,22 +7,39 @@ export function FileExplorerScopeNotice({
   returnRoot,
   onSelectRoot,
   disabled,
-  searching
+  searching,
+  sparse
 }: {
   returnRoot: ExplorerRootOption | null
   onSelectRoot: (value: string) => void
   disabled: boolean
   searching: boolean
+  sparse: boolean
 }): React.JSX.Element | null {
   if (searching) {
     return (
       <p className="border-b border-border px-2 py-1 text-xs text-muted-foreground">
-        {translate('fileExplorer.root.searchScope', 'Search scope: workspace files')}
+        <span>{translate('fileExplorer.root.searchScope', 'Search scope: workspace files')}</span>
+        {sparse ? (
+          <span className="block">
+            {translate(
+              'fileExplorer.root.omittedFiles',
+              'Files omitted by sparse checkout are not searched.'
+            )}
+          </span>
+        ) : null}
       </p>
     )
   }
   if (!returnRoot) {
-    return null
+    return sparse ? (
+      <p className="border-b border-border px-2 py-1 text-xs text-muted-foreground">
+        {translate(
+          'fileExplorer.root.viewOnly',
+          'Sparse checkout · View changes do not change checked-out files.'
+        )}
+      </p>
+    ) : null
   }
   return (
     <div className="flex min-w-0 border-b border-border px-2 py-1">

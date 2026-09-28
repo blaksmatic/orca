@@ -1,6 +1,9 @@
-import { LoaderCircle } from 'lucide-react'
+import { useId } from 'react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { translate } from '@/i18n/i18n'
 import type { SparsePresetDirectoryParseResult } from '@/lib/sparse-preset-draft'
 
@@ -17,10 +20,11 @@ type SparseCheckoutPresetDraftFormProps = {
   nameError: string | null
   submitting: boolean
   canSave: boolean
-  setNameInputNode: (node: HTMLInputElement | null) => void
+  setNameInputNode?: (node: HTMLInputElement | null) => void
   onDraftChange: (draft: SparsePresetDraft) => void
   onCancel: () => void
   onSave: () => void
+  operationError?: string | null
 }
 
 export function SparseCheckoutPresetDraftForm({
@@ -32,107 +36,104 @@ export function SparseCheckoutPresetDraftForm({
   setNameInputNode,
   onDraftChange,
   onCancel,
-  onSave
+  onSave,
+  operationError
 }: SparseCheckoutPresetDraftFormProps): React.JSX.Element {
+  const id = useId()
   return (
-    // Why: bg-popover matches the opaque surface the cmdk list (Command root) paints, so the draft
-    // form doesn't show the translucent PopoverContent through it while the list looks solid.
     <form
-      className="rounded-md bg-popover text-popover-foreground"
+      className="flex min-h-0 flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault()
         onSave()
       }}
     >
-      <div className="border-b border-border px-3 py-2 text-xs font-medium text-foreground">
-        {draft.mode === 'new'
-          ? translate('auto.components.sparse.SparseCheckoutPresetSelect.c4ac80151d', 'New preset')
-          : translate(
-              'auto.components.sparse.SparseCheckoutPresetSelect.69c020eddc',
-              'Edit preset'
-            )}
-      </div>
-      <div className="space-y-3 px-3 py-3">
-        <div className="space-y-1">
-          <label
-            htmlFor="sparse-preset-name"
-            className="block text-[11px] font-medium text-muted-foreground"
-          >
-            {translate('auto.components.sparse.SparseCheckoutPresetSelect.b3a500c623', 'Name')}
-          </label>
+      <div className="min-h-0 space-y-4 overflow-y-auto scrollbar-sleek">
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-name`}>{translate('sparsePreset.name', 'Name')}</Label>
           <Input
-            id="sparse-preset-name"
+            id={`${id}-name`}
             ref={setNameInputNode}
             value={draft.name}
             onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
-            placeholder={translate(
-              'auto.components.sparse.SparseCheckoutPresetSelect.064c1e2d12',
-              'Renderer UI'
-            )}
-            maxLength={80}
+            placeholder={translate('sparsePreset.namePlaceholder', 'Web app and shared UI')}
+            disabled={submitting}
             autoComplete="off"
             spellCheck={false}
-            className="h-8 text-xs"
+            aria-invalid={!!nameError}
+            aria-describedby={nameError ? `${id}-name-error` : undefined}
           />
+          {nameError ? (
+            <p id={`${id}-name-error`} className="text-xs text-destructive">
+              {nameError}
+            </p>
+          ) : null}
         </div>
-        <div className="space-y-1">
-          <label
-            htmlFor="sparse-preset-directories"
-            className="block text-[11px] font-medium text-muted-foreground"
-          >
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-directories`}>
+            {translate('sparsePreset.directories', 'Directories')}
+          </Label>
+          <p id={`${id}-help`} className="text-xs text-muted-foreground">
             {translate(
-              'auto.components.sparse.SparseCheckoutPresetSelect.0e9ad9c798',
-              'Directories'
+              'sparsePreset.pathHelp',
+              'One repository-relative directory per line. Spaces within a path are preserved.'
             )}
-          </label>
-          {/* Why: match the app's canonical textarea (composer Note field) — border-input +
-              standard focus ring — instead of a one-off wrapper. font-mono since these are paths. */}
-          <textarea
-            id="sparse-preset-directories"
+          </p>
+          <Textarea
+            id={`${id}-directories`}
             value={draft.directoriesText}
             onChange={(event) => onDraftChange({ ...draft, directoriesText: event.target.value })}
-            placeholder={translate(
-              'auto.components.sparse.SparseCheckoutPresetSelect.ddbcaef7be',
-              'src/renderer packages/ui'
-            )}
-            rows={3}
+            placeholder={'apps/web\npackages/ui'}
+            rows={7}
             spellCheck={false}
-            className="max-h-28 w-full min-w-0 resize-none rounded-md border border-input bg-transparent px-3 py-1.5 font-mono text-xs leading-5 shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-          />
-        </div>
-      </div>
-      <div className="flex min-h-11 items-center justify-between gap-3 border-t border-border px-3 py-2">
-        <div className="min-w-0 text-[10px] text-muted-foreground">
-          {nameError ? (
-            <span className="text-destructive">{nameError}</span>
-          ) : parsedDirectories?.error ? (
-            <span className="text-destructive">{parsedDirectories.error}</span>
-          ) : parsedDirectories?.directories.length === 1 ? (
-            translate('auto.components.sparse.SparseCheckoutPresetSelect.e9283eb171', '1 directory')
-          ) : (
-            translate(
-              'auto.components.sparse.SparseCheckoutPresetSelect.14952d451e',
-              '{{value0}} directories',
-              { value0: parsedDirectories?.directories.length ?? 0 }
-            )
-          )}
-        </div>
-        <div className="flex shrink-0 justify-end gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs text-muted-foreground"
-            onClick={onCancel}
             disabled={submitting}
+            className="resize-y"
+            variant="code"
+            aria-invalid={!!parsedDirectories?.error}
+            aria-describedby={`${id}-help ${id}-directory-status`}
+          />
+          <p
+            id={`${id}-directory-status`}
+            className="text-xs text-muted-foreground"
+            aria-live="polite"
           >
-            {translate('auto.components.sparse.SparseCheckoutPresetSelect.de8fce5854', 'Cancel')}
-          </Button>
-          <Button type="submit" size="sm" className="h-7 px-2 text-xs" disabled={!canSave}>
-            {submitting ? <LoaderCircle className="size-3 animate-spin" /> : null}
-            {translate('auto.components.sparse.SparseCheckoutPresetSelect.8b12c0850a', 'Save')}
-          </Button>
+            {parsedDirectories?.error ? (
+              <span className="text-destructive">{parsedDirectories.error}</span>
+            ) : (
+              translate('sparsePreset.directoryCount', '{{count}} directories selected', {
+                count: parsedDirectories?.directories.length ?? 0
+              })
+            )}
+          </p>
         </div>
+        <div className="space-y-2 rounded-md border border-border p-3 text-xs text-muted-foreground">
+          <p>
+            {translate(
+              'sparsePreset.coneHelp',
+              'Git also keeps files at the repository root and along the parent folders of these directories.'
+            )}
+          </p>
+          <p>
+            {translate(
+              'sparsePreset.futureHelp',
+              'This preset is used when creating a workspace. Saving it does not change existing checkouts or the explorer view.'
+            )}
+          </p>
+        </div>
+        {operationError ? (
+          <p role="alert" className="text-sm text-destructive">
+            {operationError}
+          </p>
+        ) : null}
+      </div>
+      <div className="flex shrink-0 justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
+          {translate('sparsePreset.cancel', 'Cancel')}
+        </Button>
+        <Button type="submit" disabled={!canSave}>
+          {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
+          {translate('sparsePreset.save', 'Save preset')}
+        </Button>
       </div>
     </form>
   )
