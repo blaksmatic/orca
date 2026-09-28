@@ -66,7 +66,7 @@ it('places the active folder choice in the scope row and retains the return acti
       returnRoot={{ value: 'packages/ui', label: 'packages/ui' }}
     />
   )
-  expect(screen.getByRole('combobox', { name: 'Explorer root' }).textContent).toContain(
+  expect(screen.getByRole('button', { name: 'Explorer root' }).textContent).toContain(
     'Repository root'
   )
   expect(screen.getByRole('button', { name: 'Back to packages/ui' })).toBeTruthy()

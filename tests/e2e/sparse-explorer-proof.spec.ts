@@ -85,7 +85,7 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
   await board.click()
   await board.click()
   await openFileExplorer(orcaPage)
-  const picker = orcaPage.getByRole('combobox', { name: 'Explorer root' })
+  const picker = orcaPage.getByRole('button', { name: 'Explorer root', exact: true })
   await expect(picker).toContainText('apps/web')
   const rows = orcaPage.locator('[data-file-explorer-row]')
   await expect(rows.filter({ hasText: 'package.json' })).toBeVisible()
@@ -131,7 +131,7 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
   }
   await capture('multiple-folders')
   await picker.click()
-  await orcaPage.getByRole('option', { name: 'apps/web', exact: true }).click()
+  await orcaPage.getByRole('menuitemradio', { name: 'apps/web', exact: true }).click()
   await expect(picker).toContainText('apps/web')
   await orcaPage.evaluate(
     ({ workspace }) => {
@@ -141,12 +141,18 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
   )
   await expect(picker).toContainText(baseline ? 'Full repo root' : 'Repository root')
   await expect(rows.filter({ hasText: 'README.md' })).toBeVisible()
+  await orcaPage.keyboard.press('Escape')
   await capture('outside-reveal')
   if (!baseline) {
     await orcaPage.getByRole('button', { name: 'Back to apps/web', exact: true }).click()
     await expect(picker).toContainText('apps/web')
     await expect(rows.filter({ hasText: 'README.md' })).toHaveCount(0)
     await capture('returned-to-folder')
+    await orcaPage.getByRole('button', { name: 'Repository root', exact: true }).click()
+    await expect(picker).toContainText('Repository root')
+    await picker.click()
+    await orcaPage.getByRole('menuitemradio', { name: 'apps/web', exact: true }).click()
+    await expect(picker).toContainText('apps/web')
     await orcaPage.getByLabel('Search file contents', { exact: true }).click()
     await expect(orcaPage.getByText('Search scope: workspace files', { exact: true })).toBeVisible()
     await expect(orcaPage.getByLabel('Search file contents', { exact: true })).toHaveAttribute(
@@ -164,7 +170,7 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
     await orcaPage.getByLabel('Filter files by name', { exact: true }).click()
     await expect(picker).toContainText('apps/web')
     await picker.click()
-    await orcaPage.getByRole('option', { name: 'packages/ui', exact: true }).click()
+    await orcaPage.getByRole('menuitemradio', { name: 'packages/ui', exact: true }).click()
     await expect(picker).toContainText('packages/ui')
     await expect(
       orcaPage.getByRole('button', { name: 'Back to apps/web', exact: true })
@@ -173,6 +179,7 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
       await window.__store!.getState().updateSettingsOrThrow({ theme: 'dark' })
     })
     await expect(orcaPage.locator('html')).toHaveClass(/dark/)
+    await orcaPage.keyboard.press('Escape')
     await capture('saved-choice-dark')
     await orcaPage.getByRole('button', { name: 'About sparse checkout scope' }).click()
     await capture('scope-details')

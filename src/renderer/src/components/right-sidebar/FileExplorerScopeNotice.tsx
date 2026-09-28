@@ -27,6 +27,27 @@ export function FileExplorerScopeNotice({
   return (
     <div className="border-b border-border">
       <div className="flex min-h-8 min-w-0 items-center gap-1 px-2">
+        {returnRoot && !searching && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                disabled={disabled}
+                aria-label={translate('fileExplorer.root.back', 'Back to {{path}}', {
+                  path: returnRoot.label
+                })}
+                onClick={() => onSelectRoot(returnRoot.value)}
+              >
+                <ArrowLeft />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {translate('fileExplorer.root.back', 'Back to {{path}}', { path: returnRoot.label })}
+            </TooltipContent>
+          </Tooltip>
+        )}
         {rootSelect && !searching ? (
           <FileExplorerRootSelect {...rootSelect} />
         ) : (
@@ -83,22 +104,6 @@ export function FileExplorerScopeNotice({
           </Popover>
         </div>
       </div>
-      {returnRoot && !searching && (
-        <div className="min-w-0 px-2 pb-1">
-          <Button
-            className="min-w-0 max-w-full"
-            variant="ghost"
-            size="xs"
-            disabled={disabled}
-            onClick={() => onSelectRoot(returnRoot.value)}
-          >
-            <ArrowLeft />
-            <span className="truncate">
-              {translate('fileExplorer.root.back', 'Back to {{path}}', { path: returnRoot.label })}
-            </span>
-          </Button>
-        </div>
-      )}
     </div>
   )
 }
