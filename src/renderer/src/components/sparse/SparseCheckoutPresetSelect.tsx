@@ -262,7 +262,9 @@ export default function SparseCheckoutPresetSelect({
         </PopoverTrigger>
         <PopoverContent
           align="start"
-          className="popover-scroll-content max-h-[min(var(--radix-popover-content-available-height),24rem)] w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] overflow-y-auto p-0 scrollbar-sleek"
+          sideOffset={0}
+          wheelScroll
+          className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)]"
           onCloseAutoFocus={(event) => {
             if (draft) {
               event.preventDefault()

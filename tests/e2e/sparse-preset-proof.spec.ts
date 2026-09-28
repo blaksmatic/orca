@@ -79,6 +79,64 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
   await expect(orcaPage.getByRole('combobox', { name: 'Find a preset…' })).toBeFocused()
   await orcaPage.getByRole('combobox', { name: 'Find a preset…' }).fill('packages/ui')
   await capture('preset-search')
+  const chooser = orcaPage.locator('[data-slot="popover-content"]').filter({
+    has: orcaPage.getByRole('combobox', { name: 'Find a preset…' })
+  })
+  const presetTrigger = orcaPage.getByRole('combobox', { name: 'Checkout preset' })
+  await expect
+    .poll(async () => {
+      const popup = await chooser.boundingBox()
+      const trigger = await presetTrigger.boundingBox()
+      if (!popup || !trigger) {
+        return Infinity
+      }
+      return Math.min(
+        Math.abs(popup.y + popup.height - trigger.y),
+        Math.abs(trigger.y + trigger.height - popup.y)
+      )
+    })
+    .toBeLessThanOrEqual(1)
+  await orcaPage.getByRole('combobox', { name: 'Find a preset…' }).press('Enter')
+  await expect(chooser).toHaveCount(0)
+  await expect(presetTrigger).toBeFocused()
+  await presetTrigger.click()
+  const originalPresets = await orcaPage.evaluate(() => {
+    const store = window.__store!
+    const state = store.getState()
+    const original = state.sparsePresetsByRepo
+    const selected = Object.values(original)
+      .flat()
+      .find((preset) => preset.name === 'Web app and shared UI')!
+    store.setState({
+      sparsePresetsByRepo: {
+        ...original,
+        [selected.repoId]: [
+          ...original[selected.repoId],
+          ...Array.from({ length: 24 }, (_, index) => ({
+            ...selected,
+            id: `proof-${index}`,
+            name: `Team ${index} services`,
+            directories: [`services/team-${index}/a-long-directory-name`]
+          }))
+        ]
+      }
+    })
+    return original
+  })
+  const resultList = chooser.locator('[cmdk-list]')
+  await resultList.hover()
+  await orcaPage.mouse.wheel(0, 600)
+  await expect.poll(() => resultList.evaluate((node) => node.scrollTop)).toBeGreaterThan(0)
+  await capture('preset-many')
+  await expect(orcaPage.getByRole('button', { name: 'New preset', exact: true })).toBeInViewport()
+  await orcaPage.getByRole('combobox', { name: 'Find a preset…' }).fill('team-23')
+  await expect(orcaPage.getByRole('option', { name: /Team 23 services/ })).toBeVisible()
+  await capture('preset-many-filtered')
+  await orcaPage.evaluate(
+    (original) => window.__store!.setState({ sparsePresetsByRepo: original }),
+    originalPresets
+  )
+  await orcaPage.getByRole('combobox', { name: 'Find a preset…' }).fill('')
   await orcaPage.setViewportSize({ width: 800, height: 640 })
   await orcaPage.getByRole('button', { name: 'Edit Web app and shared UI', exact: true }).click()
   const edit = orcaPage.getByRole('region', { name: 'Edit sparse preset' })

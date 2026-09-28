@@ -30,12 +30,15 @@ export function SparsePresetChooser({
   onNew
 }: SparsePresetChooserProps): React.JSX.Element {
   return (
-    <Command defaultValue={selectedPresetId ? `preset:${selectedPresetId}` : 'full'}>
+    <Command
+      defaultValue={selectedPresetId ? `preset:${selectedPresetId}` : 'full'}
+      className="max-h-[min(var(--radix-popover-content-available-height),24rem)]"
+    >
       <CommandInput
         placeholder={translate('sparsePreset.search', 'Find a preset…')}
         aria-label={translate('sparsePreset.search', 'Find a preset…')}
       />
-      <CommandList>
+      <CommandList className="min-h-0 flex-1">
         <CommandEmpty>{translate('sparsePreset.noMatches', 'No matching presets.')}</CommandEmpty>
         <CommandItem
           value="full"
@@ -97,7 +100,7 @@ export function SparsePresetChooser({
           </CommandItem>
         ))}
       </CommandList>
-      <div className="border-t border-border p-1">
+      <div className="shrink-0 border-t border-border p-1">
         <Button
           type="button"
           variant="ghost"
