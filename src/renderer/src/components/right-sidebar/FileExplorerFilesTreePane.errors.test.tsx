@@ -51,3 +51,19 @@ it('renders an empty error message as a failed read rather than an empty directo
   expect(markup).toContain('Could not load files for this workspace:')
   expect(markup).not.toContain('No files in this workspace')
 })
+
+it('describes the selected folder rather than claiming the whole workspace is empty', () => {
+  const markup = renderToStaticMarkup(
+    <FileExplorerTreeStatus isLoading={false} error={null} isEmpty scopedToFolder />
+  )
+  expect(markup).toContain('No files in this folder')
+  expect(markup).not.toContain('No files in this workspace')
+})
+
+it('identifies a failed folder load without mislabeling workspace availability', () => {
+  const markup = renderToStaticMarkup(
+    <FileExplorerTreeStatus isLoading={false} error="Permission denied" isEmpty scopedToFolder />
+  )
+  expect(markup).toContain('Could not load this folder:')
+  expect(markup).toContain('Permission denied')
+})

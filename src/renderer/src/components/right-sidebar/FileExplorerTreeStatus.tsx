@@ -6,6 +6,7 @@ type FileExplorerTreeStatusProps = {
   isLoading: boolean
   error: string | null
   isEmpty: boolean
+  scopedToFolder?: boolean
   emptyMessage?: string
 }
 
@@ -14,7 +15,8 @@ export function FileExplorerTreeStatus({
   isLoading,
   error,
   isEmpty,
-  emptyMessage
+  emptyMessage,
+  scopedToFolder = false
 }: FileExplorerTreeStatusProps): React.JSX.Element | null {
   if (isLoading) {
     return (
@@ -27,10 +29,12 @@ export function FileExplorerTreeStatus({
   if (error !== null) {
     return (
       <div className="flex h-full items-center justify-center px-4 text-center text-[11px] text-muted-foreground">
-        {translate(
-          'auto.components.right.sidebar.FileExplorerTreeStatus.c76693e456',
-          'Could not load files for this workspace:'
-        )}{' '}
+        {scopedToFolder
+          ? translate('fileExplorer.root.folderLoadError', 'Could not load this folder:')
+          : translate(
+              'auto.components.right.sidebar.FileExplorerTreeStatus.c76693e456',
+              'Could not load files for this workspace:'
+            )}{' '}
         {error}
       </div>
     )
@@ -40,10 +44,12 @@ export function FileExplorerTreeStatus({
     return (
       <div className="flex h-full items-center justify-center px-4 text-center text-[11px] text-muted-foreground">
         {emptyMessage ??
-          translate(
-            'auto.components.right.sidebar.FileExplorerTreeStatus.ce03835e1f',
-            'No files in this workspace'
-          )}
+          (scopedToFolder
+            ? translate('fileExplorer.root.emptyFolder', 'No files in this folder')
+            : translate(
+                'auto.components.right.sidebar.FileExplorerTreeStatus.ce03835e1f',
+                'No files in this workspace'
+              ))}
       </div>
     )
   }

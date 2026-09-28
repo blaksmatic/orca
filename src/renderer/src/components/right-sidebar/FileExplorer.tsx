@@ -246,18 +246,6 @@ function FileExplorerFiles(): React.JSX.Element {
         className="flex min-h-0 flex-1 flex-col"
       >
         <FileExplorerToolbar
-          rootSelect={
-            isFilesViewActive && rootOptions
-              ? {
-                  options: rootOptions,
-                  value: rootChoice,
-                  onValueChange: rootNavigation.selectRoot,
-                  disabled:
-                    Boolean(paneState.dragDrop.dragSourcePath) ||
-                    paneState.dragDrop.isNativeDragOver
-                }
-              : null
-          }
           repoName={repoName}
           worktreePath={worktreePath}
           connectionId={activeRepo?.connectionId ?? null}
@@ -273,6 +261,18 @@ function FileExplorerFiles(): React.JSX.Element {
         />
         {activeWorktree?.isSparse && (
           <FileExplorerScopeNotice
+            rootSelect={
+              isFilesViewActive && rootOptions
+                ? {
+                    options: rootOptions,
+                    value: rootChoice,
+                    onValueChange: rootNavigation.selectRoot,
+                    disabled:
+                      Boolean(paneState.dragDrop.dragSourcePath) ||
+                      paneState.dragDrop.isNativeDragOver
+                  }
+                : null
+            }
             returnRoot={rootNavigation.returnRoot}
             onSelectRoot={rootNavigation.selectRoot}
             disabled={
@@ -293,6 +293,7 @@ function FileExplorerFiles(): React.JSX.Element {
             >
               <FileExplorerNameFilter
                 query={nameFilterQuery}
+                scopeLabel={rootOptions?.find((option) => option.value === rootChoice)?.label}
                 loading={nameFilterFiles.loading}
                 onQueryChange={setNameFilterQuery}
                 onClear={handleClearNameFilter}

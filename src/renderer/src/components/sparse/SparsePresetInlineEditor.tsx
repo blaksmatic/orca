@@ -16,7 +16,7 @@ export function SparsePresetInlineEditor(
       role="region"
       data-sparse-preset-editor="true"
       aria-labelledby={titleId}
-      className="space-y-3 rounded-md border border-border bg-card p-3 text-card-foreground"
+      className="space-y-3 border-t border-border pt-3"
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
           event.preventDefault()

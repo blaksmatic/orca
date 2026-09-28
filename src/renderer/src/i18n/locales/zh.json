@@ -18502,7 +18502,14 @@
       "searchScope": "搜索范围：工作区文件",
       "retry": "重试",
       "omittedFiles": "稀疏检出中排除的文件不会被搜索。",
-      "viewOnly": "稀疏检出 · 更改视图不会更改已检出的文件。"
+      "viewOnly": "稀疏检出 · 更改视图不会更改已检出的文件。",
+      "sparseStatus": "稀疏检出",
+      "scopeDetails": "关于稀疏检出范围",
+      "scopeExplanation": "文件夹选择器只改变显示范围，不会改变检出的文件。仓库根目录视图也会显示根目录和上级文件夹中已检出的文件。",
+      "searchExplanation": "“名称”筛选当前查看的文件夹。“内容”搜索整个工作区。稀疏检出排除的文件不会被搜索。",
+      "findInFolder": "在 {{path}} 中查找",
+      "folderLoadError": "无法加载此文件夹：",
+      "emptyFolder": "此文件夹中没有文件"
     }
   },
   "sparsePreset": {
@@ -18524,6 +18531,15 @@
     "saveFailed": "无法保存预设。请重试。",
     "loading": "正在加载预设...",
     "details": "会检出哪些文件？",
-    "finishEditing": "保存或取消预设后，即可继续创建工作区。"
+    "finishEditing": "保存或取消预设后，即可继续创建工作区。",
+    "pathInstructions": "每行输入一个文件夹，使用相对于仓库根目录的路径。",
+    "singleDirectory": "已选择 1 个目录",
+    "retryLoad": "重试加载预设",
+    "fullCheckout": "完整检出",
+    "checkoutPreset": "检出预设",
+    "search": "查找预设…",
+    "noMatches": "没有匹配的预设。",
+    "allFiles": "仓库中的所有文件",
+    "editNamed": "编辑 {{name}}"
   }
 }

@@ -15378,7 +15378,14 @@
       "searchScope": "Ámbito: archivos del espacio de trabajo",
       "retry": "Reintentar",
       "omittedFiles": "Los archivos excluidos por el checkout disperso no se buscan.",
-      "viewOnly": "Checkout disperso · Cambiar la vista no cambia los archivos extraídos."
+      "viewOnly": "Checkout disperso · Cambiar la vista no cambia los archivos extraídos.",
+      "sparseStatus": "Checkout disperso",
+      "scopeDetails": "Acerca del alcance del checkout disperso",
+      "scopeExplanation": "El selector de carpetas cambia lo que ves, no los archivos del checkout. La raíz del repositorio incluye los archivos presentes en la raíz y en las carpetas superiores.",
+      "searchExplanation": "Nombres filtra la carpeta que estás viendo. Contenido busca en todo el espacio de trabajo. No se buscan los archivos omitidos por el checkout disperso.",
+      "findInFolder": "Buscar en {{path}}",
+      "folderLoadError": "No se pudo cargar esta carpeta:",
+      "emptyFolder": "No hay archivos en esta carpeta"
     }
   },
   "sparsePreset": {
@@ -15400,6 +15407,15 @@
     "saveFailed": "No se pudo guardar el preajuste. Inténtalo de nuevo.",
     "loading": "Cargando preajustes...",
     "details": "¿Qué archivos se extraen?",
-    "finishEditing": "Guarda o cancela el preajuste para continuar creando tu espacio de trabajo."
+    "finishEditing": "Guarda o cancela el preajuste para continuar creando tu espacio de trabajo.",
+    "pathInstructions": "Una carpeta por línea, con la ruta relativa a la raíz del repositorio.",
+    "singleDirectory": "1 directorio seleccionado",
+    "retryLoad": "Reintentar cargar los ajustes predefinidos",
+    "fullCheckout": "Checkout completo",
+    "checkoutPreset": "Ajuste predefinido de checkout",
+    "search": "Buscar un ajuste predefinido…",
+    "noMatches": "No hay ajustes predefinidos que coincidan.",
+    "allFiles": "Todos los archivos del repositorio",
+    "editNamed": "Editar {{name}}"
   }
 }

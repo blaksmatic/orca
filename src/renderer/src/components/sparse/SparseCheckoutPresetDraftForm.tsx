@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,6 +40,12 @@ export function SparseCheckoutPresetDraftForm({
   operationError
 }: SparseCheckoutPresetDraftFormProps): React.JSX.Element {
   const id = useId()
+  const [nameTouched, setNameTouched] = useState(false)
+  const [directoriesTouched, setDirectoriesTouched] = useState(false)
+  const visibleNameError = nameTouched || draft.name.length > 0 ? nameError : null
+  const directoryError =
+    directoriesTouched || draft.directoriesText.length > 0 ? parsedDirectories?.error : null
+  const directoryCount = parsedDirectories?.directories.length ?? 0
   return (
     <form
       className="space-y-3"
@@ -61,12 +67,13 @@ export function SparseCheckoutPresetDraftForm({
             disabled={submitting}
             autoComplete="off"
             spellCheck={false}
-            aria-invalid={!!nameError}
-            aria-describedby={nameError ? `${id}-name-error` : undefined}
+            onBlur={() => setNameTouched(true)}
+            aria-invalid={!!visibleNameError}
+            aria-describedby={visibleNameError ? `${id}-name-error` : undefined}
           />
-          {nameError ? (
+          {visibleNameError ? (
             <p id={`${id}-name-error`} className="text-xs text-destructive">
-              {nameError}
+              {visibleNameError}
             </p>
           ) : null}
         </div>
@@ -76,8 +83,8 @@ export function SparseCheckoutPresetDraftForm({
           </Label>
           <p id={`${id}-help`} className="text-xs text-muted-foreground">
             {translate(
-              'sparsePreset.pathHelp',
-              'One repository-relative directory per line. Spaces within a path are preserved.'
+              'sparsePreset.pathInstructions',
+              'One folder per line, relative to the repository root.'
             )}
           </p>
           <Textarea
@@ -85,12 +92,13 @@ export function SparseCheckoutPresetDraftForm({
             value={draft.directoriesText}
             onChange={(event) => onDraftChange({ ...draft, directoriesText: event.target.value })}
             placeholder={'apps/web\npackages/ui'}
-            rows={5}
+            rows={6}
             spellCheck={false}
             disabled={submitting}
             className="resize-y"
             variant="code"
-            aria-invalid={!!parsedDirectories?.error}
+            onBlur={() => setDirectoriesTouched(true)}
+            aria-invalid={!!directoryError}
             aria-describedby={`${id}-help ${id}-directory-status`}
           />
           <p
@@ -98,15 +106,23 @@ export function SparseCheckoutPresetDraftForm({
             className="text-xs text-muted-foreground"
             aria-live="polite"
           >
-            {parsedDirectories?.error ? (
-              <span className="text-destructive">{parsedDirectories.error}</span>
+            {directoryError ? (
+              <span className="text-destructive">{directoryError}</span>
+            ) : directoryCount === 1 ? (
+              translate('sparsePreset.singleDirectory', '1 directory selected')
             ) : (
               translate('sparsePreset.directoryCount', '{{count}} directories selected', {
-                count: parsedDirectories?.directories.length ?? 0
+                count: directoryCount
               })
             )}
           </p>
         </div>
+        <p className="text-xs text-muted-foreground">
+          {translate(
+            'sparsePreset.futureHelp',
+            'This preset is used when creating a workspace. Saving it does not change existing checkouts or the explorer view.'
+          )}
+        </p>
         <details className="space-y-2 text-xs text-muted-foreground">
           <summary className="cursor-pointer">
             {translate('sparsePreset.details', 'What gets checked out?')}
@@ -117,27 +133,36 @@ export function SparseCheckoutPresetDraftForm({
               'Git also keeps files at the repository root and along the parent folders of these directories.'
             )}
           </p>
-          <p>
-            {translate(
-              'sparsePreset.futureHelp',
-              'This preset is used when creating a workspace. Saving it does not change existing checkouts or the explorer view.'
-            )}
-          </p>
         </details>
+      </div>
+      <div className="sticky bottom-0 space-y-3 border-t border-border bg-card pt-3 pb-1">
         {operationError ? (
           <p role="alert" className="text-sm text-destructive">
             {operationError}
           </p>
         ) : null}
-      </div>
-      <div className="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-card pt-3 pb-1">
-        <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
-          {translate('sparsePreset.cancel', 'Cancel')}
-        </Button>
-        <Button type="submit" disabled={!canSave}>
-          {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
-          {translate('sparsePreset.save', 'Save preset')}
-        </Button>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
+            {translate('sparsePreset.cancel', 'Cancel')}
+          </Button>
+          <Button
+            type="submit"
+            disabled={!canSave}
+            aria-busy={submitting}
+            aria-label={translate('sparsePreset.save', 'Save preset')}
+          >
+            <span className="relative">
+              <span className="data-[saving=true]:invisible" data-saving={submitting}>
+                {translate('sparsePreset.save', 'Save preset')}
+              </span>
+              {submitting ? (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="size-4 animate-spin" />
+                </span>
+              ) : null}
+            </span>
+          </Button>
+        </div>
       </div>
     </form>
   )

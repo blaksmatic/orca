@@ -301,6 +301,7 @@ export default function NewWorkspaceComposerCard(
       <div className={cn('min-h-0 min-w-0 space-y-4 pt-3', contentClassName)}>
         <NewWorkspaceComposerProjectSection
           {...props}
+          disabled={sparseEditing}
           projectOptions={projectOptions}
           projectHostSetupOptions={projectHostSetupOptions}
           ephemeralVmRecipes={ephemeralVmRecipes}
@@ -320,6 +321,8 @@ export default function NewWorkspaceComposerCard(
         <NewWorkspaceComposerNameSection {...props} onNamePlainEnter={handleNamePlainEnter} />
         <NewWorkspaceComposerAgentSection
           {...props}
+          createDisabled={props.createDisabled || sparseEditing}
+          advancedLocked={sparseEditing}
           visibleQuickAgents={visibleQuickAgents}
           defaultTuiAgent={defaultTuiAgent}
           handleSetDefaultAgent={handleSetDefaultAgent}
@@ -342,21 +345,14 @@ export default function NewWorkspaceComposerCard(
           activeFolderWorkspaceId={activeFolderWorkspaceId}
         />
       </div>
-      <div className="shrink-0 space-y-1">
-        {sparseEditing ? (
-          <p className="text-xs text-muted-foreground">
-            {translate(
-              'sparsePreset.finishEditing',
-              'Save or cancel the preset to continue creating your workspace.'
-            )}
-          </p>
-        ) : null}
-        <NewWorkspaceComposerFooter
-          {...props}
-          createDisabled={props.createDisabled || sparseEditing}
-          submitShortcutModifierLabel={getScreenSubmitModifierLabel()}
-        />
-      </div>
+      {!sparseEditing ? (
+        <div className="shrink-0 space-y-1">
+          <NewWorkspaceComposerFooter
+            {...props}
+            submitShortcutModifierLabel={getScreenSubmitModifierLabel()}
+          />
+        </div>
+      ) : null}
       <AddRemoteHostDialog mode={addRemoteHostMode} onOpenChange={setAddRemoteHostMode} />
       {setLocationDialogMounted ? (
         <React.Suspense fallback={null}>

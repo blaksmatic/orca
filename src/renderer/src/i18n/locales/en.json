@@ -18520,7 +18520,14 @@
       "searchScope": "Search scope: workspace files",
       "retry": "Retry",
       "omittedFiles": "Files omitted by sparse checkout are not searched.",
-      "viewOnly": "Sparse checkout · View changes do not change checked-out files."
+      "viewOnly": "Sparse checkout · View changes do not change checked-out files.",
+      "sparseStatus": "Sparse checkout",
+      "scopeDetails": "About sparse checkout scope",
+      "scopeExplanation": "The folder picker changes what you see, not which files are checked out. Repository root includes the checked-out root and ancestor files.",
+      "searchExplanation": "Names filters the folder you are viewing. Contents searches across the workspace. Files omitted by sparse checkout are not searched.",
+      "findInFolder": "Find in {{path}}",
+      "folderLoadError": "Could not load this folder:",
+      "emptyFolder": "No files in this folder"
     }
   },
   "sparsePreset": {
@@ -18542,6 +18549,15 @@
     "nameExists": "A preset named “{{name}}” already exists.",
     "loading": "Loading presets...",
     "details": "What gets checked out?",
-    "finishEditing": "Save or cancel the preset to continue creating your workspace."
+    "finishEditing": "Save or cancel the preset to continue creating your workspace.",
+    "pathInstructions": "One folder per line, relative to the repository root.",
+    "singleDirectory": "1 directory selected",
+    "retryLoad": "Retry loading presets",
+    "fullCheckout": "Full checkout",
+    "checkoutPreset": "Checkout preset",
+    "search": "Find a preset…",
+    "noMatches": "No matching presets.",
+    "allFiles": "All repository files",
+    "editNamed": "Edit {{name}}"
   }
 }

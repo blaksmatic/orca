@@ -18502,7 +18502,14 @@
       "searchScope": "Portée : fichiers de l’espace de travail",
       "retry": "Réessayer",
       "omittedFiles": "Les fichiers exclus par le checkout partiel ne sont pas recherchés.",
-      "viewOnly": "Checkout partiel · Changer de vue ne modifie pas les fichiers extraits."
+      "viewOnly": "Checkout partiel · Changer de vue ne modifie pas les fichiers extraits.",
+      "sparseStatus": "Extraction partielle",
+      "scopeDetails": "À propos de la portée de l’extraction partielle",
+      "scopeExplanation": "Le sélecteur de dossiers change l’affichage, pas les fichiers extraits. La racine du dépôt inclut les fichiers extraits à la racine et dans les dossiers parents.",
+      "searchExplanation": "Noms filtre le dossier affiché. Contenu recherche dans tout l’espace de travail. Les fichiers exclus de l’extraction partielle ne sont pas recherchés.",
+      "findInFolder": "Rechercher dans {{path}}",
+      "folderLoadError": "Impossible de charger ce dossier :",
+      "emptyFolder": "Aucun fichier dans ce dossier"
     }
   },
   "sparsePreset": {
@@ -18524,6 +18531,15 @@
     "saveFailed": "Impossible d’enregistrer le préréglage. Réessayez.",
     "loading": "Chargement des préréglages...",
     "details": "Quels fichiers sont extraits ?",
-    "finishEditing": "Enregistrez ou annulez le préréglage pour poursuivre la création de votre espace de travail."
+    "finishEditing": "Enregistrez ou annulez le préréglage pour poursuivre la création de votre espace de travail.",
+    "pathInstructions": "Un dossier par ligne, avec un chemin relatif à la racine du dépôt.",
+    "singleDirectory": "1 dossier sélectionné",
+    "retryLoad": "Réessayer de charger les préréglages",
+    "fullCheckout": "Extraction complète",
+    "checkoutPreset": "Préréglage d’extraction",
+    "search": "Rechercher un préréglage…",
+    "noMatches": "Aucun préréglage correspondant.",
+    "allFiles": "Tous les fichiers du dépôt",
+    "editNamed": "Modifier {{name}}"
   }
 }

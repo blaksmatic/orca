@@ -73,6 +73,7 @@ function ComposerModalBody({
   modalData: ComposerModalData
   onClose: () => void
 }): React.JSX.Element {
+  const dialogRef = useRef<HTMLDivElement>(null)
   const submitCancelledRef = useRef(false)
   const handleDismiss = useCallback(() => {
     submitCancelledRef.current = true
@@ -83,10 +84,10 @@ function ComposerModalBody({
   return (
     <Dialog open onOpenChange={(open) => !open && handleDismiss()}>
       <DialogContent
+        ref={dialogRef}
         className="flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden sm:max-w-lg"
         onEscapeKeyDown={(event) => {
-          const target = event.target
-          if (target instanceof Element && target.closest('[data-sparse-preset-editor]')) {
+          if (dialogRef.current?.querySelector('[data-sparse-preset-editor]')) {
             event.preventDefault()
           }
         }}

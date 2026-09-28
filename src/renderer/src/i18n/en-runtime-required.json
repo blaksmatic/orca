@@ -2205,9 +2205,11 @@
           "0e9ad9c798": "Directories",
           "14952d451e": "{{value0}} directories",
           "69c020eddc": "Edit preset",
+          "7c3275d307": "Edit {{value0}}",
           "8b12c0850a": "Save",
           "b3a500c623": "Name",
           "bd6cec2056": "new",
+          "c7f9b3f0c1": "Off",
           "ddbcaef7be": "src/renderer packages/ui",
           "de8fce5854": "Cancel",
           "e9283eb171": "1 directory"
@@ -2860,6 +2862,13 @@
       "title": "Agent dashboard"
     }
   },
+  "fileExplorer": {
+    "root": {
+      "omittedFiles": "Files omitted by sparse checkout are not searched.",
+      "viewOnly": "Sparse checkout · View changes do not change checked-out files.",
+      "viewing": "Viewing: {{path}}"
+    }
+  },
   "runtimeRpc": {
     "startupFailure": {
       "guidance": {
@@ -2887,7 +2896,9 @@
     }
   },
   "sparsePreset": {
-    "description": "Choose the folders a new workspace checks out."
+    "description": "Choose the folders a new workspace checks out.",
+    "finishEditing": "Save or cancel the preset to continue creating your workspace.",
+    "pathHelp": "One repository-relative directory per line. Spaces within a path are preserved."
   },
   "worktreeJumpPalette": {
     "filter": {

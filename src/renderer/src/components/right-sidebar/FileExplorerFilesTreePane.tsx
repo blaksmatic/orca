@@ -181,6 +181,7 @@ export function FileExplorerFilesTreePane({
           error={hasError ? treeError : null}
           isEmpty={isEmptyState && !isLoading && !hasError}
           emptyMessage={emptyMessage}
+          scopedToFolder={!!displayRootPath && displayRootPath !== worktreePath}
         />
       )}
       {showTree && (

@@ -22,10 +22,10 @@ const test = base.extend({
     await git(sparseRepo, ['config', 'user.email', 'sparse-proof@example.invalid'])
     await git(sparseRepo, ['config', 'user.name', 'Sparse proof'])
     for (const [name, content] of [
-      ['omitted/private.txt', 'Not checked out\n'],
-      ['apps/web/src/App.tsx', 'export const App = () => "Web app"\n'],
+      ['omitted/private.txt', 'sparse-proof-marker omitted\n'],
+      ['apps/web/src/App.tsx', 'export const App = () => "sparse-proof-marker Web app"\n'],
       ['apps/web/package.json', '{"name":"web-app"}\n'],
-      ['packages/ui/src/Button.tsx', 'export const Button = () => "Button"\n']
+      ['packages/ui/src/Button.tsx', 'export const Button = () => "sparse-proof-marker Button"\n']
     ]) {
       const file = path.join(sparseRepo, name)
       mkdirSync(path.dirname(file), { recursive: true })
@@ -81,6 +81,9 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
     },
     { workspace }
   )
+  const board = orcaPage.getByRole('button', { name: 'Workspace board', exact: true })
+  await board.click()
+  await board.click()
   await openFileExplorer(orcaPage)
   const picker = orcaPage.getByRole('combobox', { name: 'Explorer root' })
   await expect(picker).toContainText('apps/web')
@@ -93,7 +96,9 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
       : testInfo.outputPath(`${name}.png`)
     mkdirSync(path.dirname(file), { recursive: true })
     await orcaPage.mouse.move(700, 500)
-    await orcaPage.keyboard.press('Escape')
+    await expect(
+      orcaPage.getByRole('tooltip').filter({ hasText: 'Workspace board moved to the bottom bar' })
+    ).toBeHidden({ timeout: 20000 })
     await orcaPage.screenshot({ path: file, animations: 'disabled' })
     await testInfo.attach(name, { path: file, contentType: 'image/png' })
   }
@@ -148,7 +153,14 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
       'data-state',
       'on'
     )
+    await orcaPage
+      .getByRole('textbox', { name: 'Search files', exact: true })
+      .fill('sparse-proof-marker')
+    await expect(orcaPage.getByText('App.tsx', { exact: true })).toBeVisible()
+    await expect(orcaPage.getByText('Button.tsx', { exact: true })).toBeVisible()
+    await expect(orcaPage.getByText('private.txt', { exact: true })).toHaveCount(0)
     await capture('content-search')
+    await orcaPage.getByRole('textbox', { name: 'Search files', exact: true }).fill('')
     await orcaPage.getByLabel('Filter files by name', { exact: true }).click()
     await expect(picker).toContainText('apps/web')
     await picker.click()
@@ -162,6 +174,15 @@ test('sparse explorer defaults and outside reveal', async ({ orcaPage }, testInf
     })
     await expect(orcaPage.locator('html')).toHaveClass(/dark/)
     await capture('saved-choice-dark')
+    await orcaPage.getByRole('button', { name: 'About sparse checkout scope' }).click()
+    await capture('scope-details')
+    await orcaPage.keyboard.press('Escape')
+    await orcaPage.evaluate(() => window.__store!.setState({ rightSidebarWidth: 220 }))
+    await capture('narrow-explorer')
+    await picker.click()
+    await capture('root-menu')
+    await orcaPage.keyboard.press('Escape')
+    await orcaPage.evaluate(() => window.__store!.setState({ rightSidebarWidth: 430 }))
     await git(workspace.path, ['sparse-checkout', 'disable'])
     expect(existsSync(path.join(workspace.path, 'omitted', 'private.txt'))).toBe(true)
     await orcaPage.evaluate(
