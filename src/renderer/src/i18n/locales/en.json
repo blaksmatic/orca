@@ -18540,6 +18540,8 @@
     "nameRequired": "Name is required.",
     "nameTooLong": "Name must be 80 characters or fewer.",
     "nameExists": "A preset named “{{name}}” already exists.",
-    "loading": "Loading presets..."
+    "loading": "Loading presets...",
+    "details": "What gets checked out?",
+    "finishEditing": "Save or cancel the preset to continue creating your workspace."
   }
 }

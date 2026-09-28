@@ -2886,6 +2886,9 @@
       }
     }
   },
+  "sparsePreset": {
+    "description": "Choose the folders a new workspace checks out."
+  },
   "worktreeJumpPalette": {
     "filter": {
       "chipOverflow": "+{{value0}}",

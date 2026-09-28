@@ -18522,6 +18522,8 @@
     "edit": "Modifier le préréglage de checkout partiel",
     "description": "Choisissez les dossiers à extraire dans un nouvel espace de travail.",
     "saveFailed": "Impossible d’enregistrer le préréglage. Réessayez.",
-    "loading": "Chargement des préréglages..."
+    "loading": "Chargement des préréglages...",
+    "details": "Quels fichiers sont extraits ?",
+    "finishEditing": "Enregistrez ou annulez le préréglage pour poursuivre la création de votre espace de travail."
   }
 }

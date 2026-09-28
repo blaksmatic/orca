@@ -1,5 +1,5 @@
 import type { SparsePresetDirectoryParseResult } from '@/lib/sparse-preset-draft'
-import { SparsePresetEditorDialog } from '../sparse/SparsePresetEditorDialog'
+import { SparsePresetInlineEditor } from '../sparse/SparsePresetInlineEditor'
 import type { SparsePresetDraft } from '../sparse/SparseCheckoutPresetDraftForm'
 export type { SparsePresetDraft } from '../sparse/SparseCheckoutPresetDraftForm'
 
@@ -20,7 +20,7 @@ export function SparsePresetDraftEditor({
   ...props
 }: SparsePresetDraftEditorProps): React.JSX.Element {
   return (
-    <SparsePresetEditorDialog
+    <SparsePresetInlineEditor
       {...props}
       onDraftChange={setDraft}
       canSave={canSaveDraft}

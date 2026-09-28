@@ -95,6 +95,7 @@ export default function NewWorkspaceComposerCard(
   const nameInputFocusFrameRef = React.useRef<number | null>(null)
   const branchNameInputId = React.useId()
   const projectDescriptionId = React.useId()
+  const [sparseEditing, setSparseEditing] = React.useState(false)
   const [addRemoteHostMode, setAddRemoteHostMode] = React.useState<AddRemoteHostMode | null>(null)
   const [setLocationOption, setSetLocationOption] = React.useState<NeedsProjectHostOption | null>(
     null
@@ -287,6 +288,7 @@ export default function NewWorkspaceComposerCard(
     <div
       ref={setComposerNode}
       data-workspace-composer-root="true"
+      data-sparse-preset-editing={sparseEditing ? 'true' : undefined}
       data-native-file-drop-target="composer"
       onDragEnter={dragHandlers.onDragEnter}
       onDragLeave={dragHandlers.onDragLeave}
@@ -324,6 +326,8 @@ export default function NewWorkspaceComposerCard(
         />
         <NewWorkspaceComposerAdvancedSection
           {...props}
+          onSparseEditingChange={setSparseEditing}
+          sparseEditing={sparseEditing}
           branchNameInputId={branchNameInputId}
           setupConfigLabel={setupConfigLabel}
           setupRunLabel={setupRunLabel}
@@ -339,8 +343,17 @@ export default function NewWorkspaceComposerCard(
         />
       </div>
       <div className="shrink-0 space-y-1">
+        {sparseEditing ? (
+          <p className="text-xs text-muted-foreground">
+            {translate(
+              'sparsePreset.finishEditing',
+              'Save or cancel the preset to continue creating your workspace.'
+            )}
+          </p>
+        ) : null}
         <NewWorkspaceComposerFooter
           {...props}
+          createDisabled={props.createDisabled || sparseEditing}
           submitShortcutModifierLabel={getScreenSubmitModifierLabel()}
         />
       </div>

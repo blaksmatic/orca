@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronsUpDown, LoaderCircle, Pencil, Plus, RefreshCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Command, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command'
@@ -10,7 +10,7 @@ import { useMountedRef } from '@/hooks/useMountedRef'
 import type { SparsePreset } from '../../../../shared/worktree/create-types'
 import { translate } from '@/i18n/i18n'
 import type { SparsePresetDraft } from './SparseCheckoutPresetDraftForm'
-import { SparsePresetEditorDialog } from './SparsePresetEditorDialog'
+import { SparsePresetInlineEditor } from './SparsePresetInlineEditor'
 
 type SparseCheckoutPresetSelectProps = {
   repoId: string
@@ -18,6 +18,7 @@ type SparseCheckoutPresetSelectProps = {
   selectedPresetId: string | null
   onSelectPreset: (preset: SparsePreset | null) => void
   disabled?: boolean
+  onEditingChange?: (editing: boolean) => void
 }
 
 export default function SparseCheckoutPresetSelect({
@@ -25,7 +26,8 @@ export default function SparseCheckoutPresetSelect({
   presets,
   selectedPresetId,
   onSelectPreset,
-  disabled = false
+  disabled = false,
+  onEditingChange
 }: SparseCheckoutPresetSelectProps): React.JSX.Element {
   const fetchSparsePresets = useAppStore((s) => s.fetchSparsePresets)
   const saveSparsePreset = useAppStore((s) => s.saveSparsePreset)
@@ -42,6 +44,14 @@ export default function SparseCheckoutPresetSelect({
   const nameInputRef = useRef<HTMLInputElement>(null)
   const nameInputFocusFrameRef = useRef<number | null>(null)
   const mountedRef = useMountedRef()
+
+  useEffect(() => () => onEditingChange?.(false), [onEditingChange])
+
+  const finishDraft = useCallback(() => {
+    setDraft(null)
+    onEditingChange?.(false)
+    triggerRef.current?.focus()
+  }, [onEditingChange])
 
   const visiblePresets = presetsForRepo ?? presets
   const presetsLoaded = presetsForRepo !== undefined
@@ -92,14 +102,18 @@ export default function SparseCheckoutPresetSelect({
       setOpen(false)
       setOperationError(null)
       setDraft(nextDraft)
+      onEditingChange?.(true)
       cancelNameInputFocusFrame()
       nameInputFocusFrameRef.current = requestAnimationFrame(() => {
         nameInputFocusFrameRef.current = null
         nameInputRef.current?.focus()
         nameInputRef.current?.select()
+        nameInputRef.current
+          ?.closest('[data-sparse-preset-editor]')
+          ?.scrollIntoView({ block: 'start' })
       })
     },
-    [cancelNameInputFocusFrame, disabled, presetsLoaded]
+    [cancelNameInputFocusFrame, disabled, onEditingChange, presetsLoaded]
   )
 
   const startNewPreset = useCallback((): void => {
@@ -143,7 +157,7 @@ export default function SparseCheckoutPresetSelect({
         if (draft.mode === 'new' || selectedPresetId === saved.id) {
           onSelectPreset(saved)
         }
-        setDraft(null)
+        finishDraft()
         setOpen(false)
       } else if (mountedRef.current) {
         setOperationError(
@@ -164,6 +178,7 @@ export default function SparseCheckoutPresetSelect({
   }, [
     canSave,
     draft,
+    finishDraft,
     mountedRef,
     onSelectPreset,
     parsedDirectories,
@@ -212,15 +227,15 @@ export default function SparseCheckoutPresetSelect({
       <Popover
         open={open}
         onOpenChange={(nextOpen) => {
+          if (nextOpen && draft) {
+            return
+          }
           if (nextOpen && presetsLoading) {
             setOpen(false)
             setDraft(null)
             return
           }
           setOpen(nextOpen)
-          if (!nextOpen) {
-            setDraft(null)
-          }
         }}
       >
         <PopoverTrigger asChild>
@@ -231,6 +246,7 @@ export default function SparseCheckoutPresetSelect({
             role="combobox"
             aria-expanded={open}
             aria-busy={isLoadingPresets}
+            aria-disabled={Boolean(draft) || undefined}
             disabled={disabled || isLoadingPresets}
             className="h-9 w-full justify-between border-input px-3 text-sm font-normal text-foreground focus:border-ring focus:ring-[3px] focus:ring-ring/50"
           >
@@ -248,6 +264,11 @@ export default function SparseCheckoutPresetSelect({
           align="start"
           className="popover-scroll-content max-h-[min(var(--radix-popover-content-available-height),24rem)] w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] overflow-y-auto p-0 scrollbar-sleek"
           onOpenAutoFocus={(event) => event.preventDefault()}
+          onCloseAutoFocus={(event) => {
+            if (draft) {
+              event.preventDefault()
+            }
+          }}
         >
           {!presetsLoaded ? (
             <div className="p-1">
@@ -358,7 +379,7 @@ export default function SparseCheckoutPresetSelect({
         </PopoverContent>
       </Popover>
       {draft ? (
-        <SparsePresetEditorDialog
+        <SparsePresetInlineEditor
           draft={draft}
           parsedDirectories={parsedDirectories}
           nameError={nameError}
@@ -366,13 +387,9 @@ export default function SparseCheckoutPresetSelect({
           canSave={canSave}
           setNameInputNode={setNameInputNode}
           onDraftChange={setDraft}
-          onCancel={() => setDraft(null)}
+          onCancel={finishDraft}
           onSave={() => void handleSaveDraft()}
           operationError={operationError}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault()
-            triggerRef.current?.focus()
-          }}
         />
       ) : null}
     </>

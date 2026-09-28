@@ -15398,6 +15398,8 @@
     "edit": "Editar preajuste de checkout disperso",
     "description": "Elige las carpetas que se extraerán en un nuevo espacio de trabajo.",
     "saveFailed": "No se pudo guardar el preajuste. Inténtalo de nuevo.",
-    "loading": "Cargando preajustes..."
+    "loading": "Cargando preajustes...",
+    "details": "¿Qué archivos se extraen?",
+    "finishEditing": "Guarda o cancela el preajuste para continuar creando tu espacio de trabajo."
   }
 }

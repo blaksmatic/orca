@@ -40,8 +40,14 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
   if (baseline) {
     return
   }
-  const editor = orcaPage.getByRole('dialog', { name: 'New sparse preset' })
+  const editor = orcaPage.getByRole('region', { name: 'New sparse preset' })
   await expect(editor).toBeVisible()
+  await expect(orcaPage.getByRole('button', { name: /^Create worktree/ })).toBeDisabled()
+  await expect(orcaPage.getByRole('dialog')).toHaveCount(1)
+  await expect(orcaPage.locator('[data-workspace-composer-root]')).toHaveAttribute(
+    'data-sparse-preset-editing',
+    'true'
+  )
   await expect(editor.getByText('6 directories selected')).toBeVisible()
   await editor.getByLabel('Directories', { exact: true }).fill('../outside')
   await expect(editor.getByLabel('Directories', { exact: true })).toHaveAttribute(
@@ -60,25 +66,27 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
     .getByRole('combobox')
     .filter({ hasText: /^Web app and shared UI$/ })
     .click()
-  await orcaPage.getByRole('button', { name: 'Edit Web app and shared UI', exact: true }).click()
-  const edit = orcaPage.getByRole('dialog', { name: 'Edit sparse preset' })
-  await expect(edit.getByLabel('Directories', { exact: true })).toHaveValue('apps/web\npackages/ui')
   await orcaPage.setViewportSize({ width: 800, height: 640 })
+  await orcaPage.getByRole('button', { name: 'Edit Web app and shared UI', exact: true }).click()
+  const edit = orcaPage.getByRole('region', { name: 'Edit sparse preset' })
+  await expect(edit.getByLabel('Directories', { exact: true })).toHaveValue('apps/web\npackages/ui')
   await orcaPage.evaluate(async () => {
     await window.__store!.getState().updateSettingsOrThrow({ theme: 'dark' })
   })
   await expect(edit.getByRole('button', { name: 'Save preset', exact: true })).toBeInViewport()
   await expect(edit.getByRole('button', { name: 'Cancel', exact: true })).toBeInViewport()
   await capture('preset-narrow-dark')
-  await edit.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await edit.getByLabel('Name', { exact: true }).focus()
+  await orcaPage.keyboard.press('Escape')
   await expect(edit).toHaveCount(0)
+  await expect(orcaPage.getByRole('dialog')).toHaveCount(1)
   await orcaPage.setViewportSize({ width: 1200, height: 800 })
   await orcaPage
     .getByRole('combobox')
     .filter({ hasText: /^Web app and shared UI$/ })
     .click()
   await orcaPage.getByRole('option', { name: 'New preset', exact: true }).click()
-  const second = orcaPage.getByRole('dialog', { name: 'New sparse preset' })
+  const second = orcaPage.getByRole('region', { name: 'New sparse preset' })
   await second.getByLabel('Name', { exact: true }).fill('web app and shared ui')
   await second.getByLabel('Directories', { exact: true }).fill('packages/ui')
   await expect(
@@ -114,12 +122,14 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
     state.openSettingsPage()
   })
   await orcaPage.getByRole('button', { name: 'New Preset', exact: true }).click()
-  const settingsEditor = orcaPage.getByRole('dialog', { name: 'New sparse preset' })
+  const settingsEditor = orcaPage.getByRole('region', { name: 'New sparse preset' })
   await settingsEditor.getByLabel('Name', { exact: true }).fill('web app and shared ui')
   await settingsEditor.getByLabel('Directories', { exact: true }).fill('apps/web')
   await expect(
     settingsEditor.getByText('A preset named “Web app and shared UI” already exists.')
   ).toBeVisible()
+  await expect(orcaPage.getByRole('dialog')).toHaveCount(0)
   await capture('preset-settings')
   await settingsEditor.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await expect(orcaPage.getByRole('button', { name: 'New Preset', exact: true })).toBeFocused()
 })

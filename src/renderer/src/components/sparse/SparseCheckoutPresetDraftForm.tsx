@@ -42,13 +42,14 @@ export function SparseCheckoutPresetDraftForm({
   const id = useId()
   return (
     <form
-      className="flex min-h-0 flex-col gap-4"
+      className="space-y-3"
       onSubmit={(event) => {
         event.preventDefault()
+        event.stopPropagation()
         onSave()
       }}
     >
-      <div className="min-h-0 space-y-4 overflow-y-auto scrollbar-sleek">
+      <div className="space-y-3">
         <div className="space-y-2">
           <Label htmlFor={`${id}-name`}>{translate('sparsePreset.name', 'Name')}</Label>
           <Input
@@ -84,7 +85,7 @@ export function SparseCheckoutPresetDraftForm({
             value={draft.directoriesText}
             onChange={(event) => onDraftChange({ ...draft, directoriesText: event.target.value })}
             placeholder={'apps/web\npackages/ui'}
-            rows={7}
+            rows={5}
             spellCheck={false}
             disabled={submitting}
             className="resize-y"
@@ -106,7 +107,10 @@ export function SparseCheckoutPresetDraftForm({
             )}
           </p>
         </div>
-        <div className="space-y-2 rounded-md border border-border p-3 text-xs text-muted-foreground">
+        <details className="space-y-2 text-xs text-muted-foreground">
+          <summary className="cursor-pointer">
+            {translate('sparsePreset.details', 'What gets checked out?')}
+          </summary>
           <p>
             {translate(
               'sparsePreset.coneHelp',
@@ -119,14 +123,14 @@ export function SparseCheckoutPresetDraftForm({
               'This preset is used when creating a workspace. Saving it does not change existing checkouts or the explorer view.'
             )}
           </p>
-        </div>
+        </details>
         {operationError ? (
           <p role="alert" className="text-sm text-destructive">
             {operationError}
           </p>
         ) : null}
       </div>
-      <div className="flex shrink-0 justify-end gap-2">
+      <div className="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-card pt-3 pb-1">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
           {translate('sparsePreset.cancel', 'Cancel')}
         </Button>

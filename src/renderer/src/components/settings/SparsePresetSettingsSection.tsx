@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { SparsePreset } from '../../../../shared/worktree/create-types'
 import { useAppStore } from '../../store'
@@ -30,6 +30,19 @@ export function SparsePresetSettingsSection({
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null)
   const [operationError, setOperationError] = useState<string | null>(null)
   const mountedRef = useMountedRef()
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+  const closeDraft = (): void => {
+    setDraft(null)
+    queueMicrotask(() => {
+      if (returnFocusRef.current?.isConnected) {
+        returnFocusRef.current.focus()
+      }
+    })
+  }
+  const rememberEditorTrigger = (): void => {
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+  }
 
   useEffect(() => {
     if (presets === undefined && loadStatus === 'idle') {
@@ -54,6 +67,7 @@ export function SparsePresetSettingsSection({
   const visibleError = operationError ?? loadError ?? null
 
   const startNewPreset = (): void => {
+    rememberEditorTrigger()
     setConfirmingDeleteId(null)
     setOperationError(null)
     setDraft({
@@ -64,6 +78,7 @@ export function SparsePresetSettingsSection({
   }
 
   const startEditPreset = (preset: SparsePreset): void => {
+    rememberEditorTrigger()
     setConfirmingDeleteId(null)
     setOperationError(null)
     setDraft({
@@ -88,7 +103,7 @@ export function SparsePresetSettingsSection({
         directories: parsedDirectories.directories
       })
       if (saved && mountedRef.current) {
-        setDraft(null)
+        closeDraft()
       } else if (mountedRef.current) {
         setOperationError(
           draft.mode === 'new' ? 'Failed to save preset.' : 'Failed to update preset.'
@@ -184,7 +199,13 @@ export function SparsePresetSettingsSection({
         <SparsePresetDraftEditor
           draft={draft}
           operationError={operationError}
-          setDraft={setDraft}
+          setDraft={(nextDraft) => {
+            if (nextDraft) {
+              setDraft(nextDraft)
+            } else {
+              closeDraft()
+            }
+          }}
           nameError={nameError}
           parsedDirectories={parsedDirectories}
           canSaveDraft={canSaveDraft}
