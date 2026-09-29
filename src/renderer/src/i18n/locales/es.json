@@ -15416,6 +15416,9 @@
     "search": "Buscar un ajuste predefinido…",
     "noMatches": "No hay ajustes predefinidos que coincidan.",
     "allFiles": "Todos los archivos del repositorio",
-    "editNamed": "Editar {{name}}"
+    "editNamed": "Editar {{name}}",
+    "addPath": "Add a folder",
+    "findPath": "Find a folder…",
+    "noPathMatches": "No folders found."
   }
 }

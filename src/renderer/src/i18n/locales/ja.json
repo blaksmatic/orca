@@ -18540,6 +18540,9 @@
     "search": "プリセットを検索…",
     "noMatches": "一致するプリセットはありません。",
     "allFiles": "リポジトリ内のすべてのファイル",
-    "editNamed": "{{name}} を編集"
+    "editNamed": "{{name}} を編集",
+    "addPath": "Add a folder",
+    "findPath": "Find a folder…",
+    "noPathMatches": "No folders found."
   }
 }

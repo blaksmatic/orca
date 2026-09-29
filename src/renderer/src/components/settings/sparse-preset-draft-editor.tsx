@@ -12,16 +12,19 @@ type SparsePresetDraftEditorProps = {
   submitting: boolean
   onSave: () => void
   operationError?: string | null
+  directorySuggestions?: string[]
 }
 
 export function SparsePresetDraftEditor({
   setDraft,
   canSaveDraft,
+  directorySuggestions,
   ...props
 }: SparsePresetDraftEditorProps): React.JSX.Element {
   return (
     <SparsePresetInlineEditor
       {...props}
+      directorySuggestions={directorySuggestions}
       onDraftChange={setDraft}
       canSave={canSaveDraft}
       onCancel={() => setDraft(null)}

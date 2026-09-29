@@ -18558,6 +18558,9 @@
     "search": "Find a preset…",
     "noMatches": "No matching presets.",
     "allFiles": "All repository files",
-    "editNamed": "Edit {{name}}"
+    "editNamed": "Edit {{name}}",
+    "addPath": "Add a folder",
+    "findPath": "Find a folder…",
+    "noPathMatches": "No folders found."
   }
 }

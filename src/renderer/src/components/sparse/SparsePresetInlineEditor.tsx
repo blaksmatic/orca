@@ -1,4 +1,4 @@
-import { useCallback, useId } from 'react'
+import { useCallback, useEffect, useId, useRef } from 'react'
 import type { ComponentProps } from 'react'
 import { translate } from '@/i18n/i18n'
 import { SparseCheckoutPresetDraftForm } from './SparseCheckoutPresetDraftForm'
@@ -7,6 +7,13 @@ export function SparsePresetInlineEditor(
   props: ComponentProps<typeof SparseCheckoutPresetDraftForm>
 ): React.JSX.Element {
   const titleId = useId()
+  const editorRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ block: 'center', behavior: 'auto' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [])
   const focusName = useCallback((node: HTMLInputElement | null) => {
     node?.focus()
     node?.closest('[data-sparse-preset-editor]')?.scrollIntoView({ block: 'start' })
@@ -14,6 +21,7 @@ export function SparsePresetInlineEditor(
   return (
     <section
       role="region"
+      ref={editorRef}
       data-sparse-preset-editor="true"
       aria-labelledby={titleId}
       className="space-y-3 border-t border-border pt-3"

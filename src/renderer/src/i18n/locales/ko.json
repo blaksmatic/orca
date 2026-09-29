@@ -18540,6 +18540,9 @@
     "search": "프리셋 찾기…",
     "noMatches": "일치하는 프리셋이 없습니다.",
     "allFiles": "저장소의 모든 파일",
-    "editNamed": "프리셋 편집: {{name}}"
+    "editNamed": "프리셋 편집: {{name}}",
+    "addPath": "Add a folder",
+    "findPath": "Find a folder…",
+    "noPathMatches": "No folders found."
   }
 }

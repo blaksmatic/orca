@@ -18540,6 +18540,9 @@
     "search": "查找预设…",
     "noMatches": "没有匹配的预设。",
     "allFiles": "仓库中的所有文件",
-    "editNamed": "编辑 {{name}}"
+    "editNamed": "编辑 {{name}}",
+    "addPath": "Add a folder",
+    "findPath": "Find a folder…",
+    "noPathMatches": "No folders found."
   }
 }

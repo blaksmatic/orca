@@ -18540,6 +18540,9 @@
     "search": "Rechercher un préréglage…",
     "noMatches": "Aucun préréglage correspondant.",
     "allFiles": "Tous les fichiers du dépôt",
-    "editNamed": "Modifier {{name}}"
+    "editNamed": "Modifier {{name}}",
+    "addPath": "Add a folder",
+    "findPath": "Find a folder…",
+    "noPathMatches": "No folders found."
   }
 }

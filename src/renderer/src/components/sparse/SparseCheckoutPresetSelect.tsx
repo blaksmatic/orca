@@ -321,6 +321,7 @@ export default function SparseCheckoutPresetSelect({
           onCancel={finishDraft}
           onSave={() => void handleSaveDraft()}
           operationError={operationError}
+          directorySuggestions={(presets ?? []).flatMap((preset) => preset.directories)}
         />
       ) : null}
     </>
