@@ -150,7 +150,7 @@ export function SparseCheckoutPresetDraftForm({
           </p>
         </details>
       </div>
-      <div className="sticky bottom-0 z-10 -mx-1 space-y-3 border-t border-border bg-card px-1 pt-3 pb-3 shadow-[0_-8px_12px_-12px] shadow-background">
+      <div className="relative z-10 -mx-1 space-y-3 border-t border-border bg-card px-1 pt-3 pb-3">
         {operationError ? (
           <p role="alert" className="text-sm text-destructive">
             {operationError}

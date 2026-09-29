@@ -24,7 +24,7 @@ export function SparseDirectoryPicker({
   onAdd
 }: SparseDirectoryPickerProps): React.JSX.Element | null {
   const available = suggestions.filter((path) => !selected.includes(path))
-  if (!available.length) {
+  if (!suggestions.length) {
     return null
   }
   return (
