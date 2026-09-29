@@ -28,6 +28,7 @@ export default function SparseCheckoutPresetSelect({
   disabled = false,
   onEditingChange
 }: SparseCheckoutPresetSelectProps): React.JSX.Element {
+  const repo = useAppStore((s) => s.repos.find((entry) => entry.id === repoId))
   const fetchSparsePresets = useAppStore((s) => s.fetchSparsePresets)
   const saveSparsePreset = useAppStore((s) => s.saveSparsePreset)
   const presetsForRepo = useAppStore((s) => s.sparsePresetsByRepo[repoId])
@@ -321,7 +322,8 @@ export default function SparseCheckoutPresetSelect({
           onCancel={finishDraft}
           onSave={() => void handleSaveDraft()}
           operationError={operationError}
-          directorySuggestions={(presets ?? []).flatMap((preset) => preset.directories)}
+          repoRootPath={repo?.path}
+          repoConnectionId={repo?.connectionId ?? undefined}
         />
       ) : null}
     </>

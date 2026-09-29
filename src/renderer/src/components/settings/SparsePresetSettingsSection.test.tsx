@@ -2,11 +2,13 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Repo } from '../../../../shared/repo-types'
 import type { SparsePreset } from '../../../../shared/worktree/create-types'
 import { SparsePresetSettingsSection } from './SparsePresetSettingsSection'
 
 const storeMock = vi.hoisted(() => ({
   state: {
+    repos: new Array<Repo>(),
     sparsePresetsByRepo: {} as Record<string, SparsePreset[]>,
     sparsePresetsLoadStatusByRepo: {} as Record<string, 'idle' | 'loading' | 'loaded' | 'error'>,
     sparsePresetsErrorByRepo: {} as Record<string, string | undefined>,
@@ -24,6 +26,7 @@ afterEach(cleanup)
 
 describe('SparsePresetSettingsSection', () => {
   beforeEach(() => {
+    storeMock.state.repos = []
     storeMock.state.sparsePresetsByRepo = {}
     storeMock.state.sparsePresetsLoadStatusByRepo = {}
     storeMock.state.sparsePresetsErrorByRepo = {}

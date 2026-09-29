@@ -17,6 +17,7 @@ type SparsePresetSettingsSectionProps = {
 export function SparsePresetSettingsSection({
   repoId
 }: SparsePresetSettingsSectionProps): React.JSX.Element {
+  const repo = useAppStore((s) => s.repos.find((entry) => entry.id === repoId))
   const presets = useAppStore((s) => s.sparsePresetsByRepo[repoId])
   const loadStatus = useAppStore((s) => s.sparsePresetsLoadStatusByRepo[repoId] ?? 'idle')
   const loadError = useAppStore((s) => s.sparsePresetsErrorByRepo[repoId])
@@ -195,6 +196,8 @@ export function SparsePresetSettingsSection({
       canSaveDraft={canSaveDraft}
       submitting={submitting}
       onSave={() => void handleSaveDraft()}
+      repoRootPath={repo?.path}
+      repoConnectionId={repo?.connectionId ?? undefined}
     />
   ) : null
 

@@ -18561,6 +18561,11 @@
     "editNamed": "Edit {{name}}",
     "addPath": "Add a folder",
     "findPath": "Find a folder…",
-    "noPathMatches": "No folders found."
+    "noPathMatches": "No folders found.",
+    "repositoryRoot": "Repository root",
+    "loadingPaths": "Reading folders…",
+    "pathsUnavailable": "Could not read this folder. Type the path instead.",
+    "pathAdded": "Added",
+    "openFolder": "Open {{name}}"
   }
 }

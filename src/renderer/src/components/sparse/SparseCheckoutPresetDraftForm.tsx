@@ -8,8 +8,6 @@ import { SparseDirectoryPicker } from './SparseDirectoryPicker'
 import { translate } from '@/i18n/i18n'
 import type { SparsePresetDirectoryParseResult } from '@/lib/sparse-preset-draft'
 
-const EMPTY_DIRECTORY_SUGGESTIONS: string[] = []
-
 export type SparsePresetDraft = {
   mode: 'new' | 'edit'
   presetId?: string
@@ -28,7 +26,8 @@ type SparseCheckoutPresetDraftFormProps = {
   onCancel: () => void
   onSave: () => void
   operationError?: string | null
-  directorySuggestions?: string[]
+  repoRootPath?: string
+  repoConnectionId?: string
 }
 
 export function SparseCheckoutPresetDraftForm({
@@ -42,7 +41,8 @@ export function SparseCheckoutPresetDraftForm({
   onCancel,
   onSave,
   operationError,
-  directorySuggestions = EMPTY_DIRECTORY_SUGGESTIONS
+  repoRootPath,
+  repoConnectionId
 }: SparseCheckoutPresetDraftFormProps): React.JSX.Element {
   const id = useId()
   const [nameTouched, setNameTouched] = useState(false)
@@ -57,7 +57,7 @@ export function SparseCheckoutPresetDraftForm({
   }
   return (
     <form
-      className="space-y-3 pb-12"
+      className="space-y-3"
       onSubmit={(event) => {
         event.preventDefault()
         event.stopPropagation()
@@ -110,12 +110,15 @@ export function SparseCheckoutPresetDraftForm({
             aria-invalid={!!directoryError}
             aria-describedby={`${id}-help ${id}-directory-status`}
           />
-          <SparseDirectoryPicker
-            suggestions={directorySuggestions}
-            selected={parsedDirectories?.directories ?? []}
-            disabled={submitting}
-            onAdd={addDirectory}
-          />
+          {repoRootPath ? (
+            <SparseDirectoryPicker
+              rootPath={repoRootPath}
+              connectionId={repoConnectionId}
+              selected={parsedDirectories?.directories ?? []}
+              disabled={submitting}
+              onAdd={addDirectory}
+            />
+          ) : null}
           <p
             id={`${id}-directory-status`}
             className="text-xs text-muted-foreground"
@@ -150,7 +153,7 @@ export function SparseCheckoutPresetDraftForm({
           </p>
         </details>
       </div>
-      <div className="relative z-10 -mx-1 space-y-3 border-t border-border bg-card px-1 pt-3 pb-3">
+      <div className="space-y-3 border-t border-border pt-3">
         {operationError ? (
           <p role="alert" className="text-sm text-destructive">
             {operationError}
