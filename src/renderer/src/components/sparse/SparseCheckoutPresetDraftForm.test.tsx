@@ -25,7 +25,7 @@ it('keeps an untouched new preset neutral and reveals the name error on blur', (
   expect(screen.getByText('Name is required.')).toBeTruthy()
 })
 
-it('shows singular counts and keeps a save failure alongside the retained draft', () => {
+it('keeps a save failure alongside the retained draft', () => {
   render(
     <SparseCheckoutPresetDraftForm
       {...callbacks}
@@ -37,7 +37,6 @@ it('shows singular counts and keeps a save failure alongside the retained draft'
       operationError="Could not save the preset. Try again."
     />
   )
-  expect(screen.getByText('1 directory selected')).toBeTruthy()
   expect(screen.getByRole('alert').textContent).toContain('Try again')
   expect(screen.getByText('apps/web')).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Save preset' }).hasAttribute('disabled')).toBe(false)

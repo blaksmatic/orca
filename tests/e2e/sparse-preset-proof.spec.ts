@@ -1,3 +1,4 @@
+import type { Locator } from '@stablyai/playwright-test'
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { test, expect } from './helpers/orca-app'
@@ -26,6 +27,15 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
     await orcaPage.screenshot({ path: file, animations: 'disabled' })
     await testInfo.attach(name, { path: file, contentType: 'image/png' })
   }
+  // Why: free-form entry keeps the proof independent of the fixture repo's real folders.
+  const addDirectory = async (scope: Locator, directory: string): Promise<void> => {
+    await scope.getByRole('combobox', { name: 'Add a folder' }).click()
+    await orcaPage
+      .getByRole('combobox', { name: 'Find a folder, or type any path…' })
+      .fill(directory)
+    await orcaPage.locator(`[data-value="__literal__:${directory}"]`).click()
+    await expect(scope.getByRole('button', { name: `Remove ${directory}` })).toBeVisible()
+  }
   await orcaPage.getByRole('button', { name: 'Advanced', exact: true }).click()
   await orcaPage.getByRole('combobox', { name: 'Checkout preset' }).click()
   await orcaPage.getByRole('button', { name: 'New preset', exact: true }).click()
@@ -33,18 +43,22 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
     'aria-invalid',
     'false'
   )
-  await expect(orcaPage.getByLabel('Directories', { exact: true })).toHaveAttribute(
-    'aria-invalid',
-    'false'
-  )
+  await expect(orcaPage.getByText('No folders added yet.')).toBeVisible()
   await capture('preset-pristine')
   const baseline = process.env.ORCA_SPARSE_PROOF_BASELINE === '1'
   await orcaPage.getByLabel('Name', { exact: true }).fill('Web app and shared UI')
-  await orcaPage
-    .getByLabel('Directories', { exact: true })
-    .fill(
-      'apps/web\npackages/ui\npackages/design-tokens\npackages/icons\npackages/analytics\npackages/auth'
-    )
+  const composerEditor = orcaPage.getByRole('region', { name: 'New sparse preset' })
+  const initialDirectories = [
+    'apps/web',
+    'packages/ui',
+    'packages/design-tokens',
+    'packages/icons',
+    'packages/analytics',
+    'packages/auth'
+  ]
+  for (const directory of initialDirectories) {
+    await addDirectory(composerEditor, directory)
+  }
   await capture('preset-editor')
   await expect(orcaPage.getByRole('button', { name: 'Advanced', exact: true })).toBeDisabled()
   if (baseline) {
@@ -58,15 +72,24 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
     'data-sparse-preset-editing',
     'true'
   )
-  await expect(editor.getByText('6 directories selected')).toBeVisible()
-  await editor.getByLabel('Directories', { exact: true }).fill('../outside')
-  await expect(editor.getByLabel('Directories', { exact: true })).toHaveAttribute(
-    'aria-invalid',
-    'true'
+  await expect(editor.getByRole('button', { name: /^Remove / })).toHaveCount(
+    initialDirectories.length
   )
-  await expect(editor.getByRole('button', { name: 'Save preset', exact: true })).toBeDisabled()
+  await editor.getByRole('combobox', { name: 'Add a folder' }).click()
+  const pathInput = orcaPage.getByRole('combobox', { name: 'Find a folder, or type any path…' })
+  await pathInput.fill('../outside')
+  await expect(
+    orcaPage.getByText(
+      'Use repo-relative directories, not root, absolute paths, or parent segments.'
+    )
+  ).toBeVisible()
+  await expect(orcaPage.locator('[data-value^="__literal__:"]')).toHaveCount(0)
   await capture('preset-validation')
-  await editor.getByLabel('Directories', { exact: true }).fill('apps/web\npackages/ui')
+  await orcaPage.keyboard.press('Escape')
+  for (const directory of initialDirectories.slice(2)) {
+    await editor.getByRole('button', { name: `Remove ${directory}` }).click()
+  }
+  await expect(editor.getByRole('button', { name: /^Remove / })).toHaveCount(2)
   await editor.getByRole('button', { name: 'Save preset', exact: true }).click()
   await expect(editor).toHaveCount(0)
   await expect(
@@ -140,7 +163,8 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
   await orcaPage.setViewportSize({ width: 800, height: 640 })
   await orcaPage.getByRole('button', { name: 'Edit Web app and shared UI', exact: true }).click()
   const edit = orcaPage.getByRole('region', { name: 'Edit sparse preset' })
-  await expect(edit.getByLabel('Directories', { exact: true })).toHaveValue('apps/web\npackages/ui')
+  await expect(edit.getByRole('button', { name: 'Remove apps/web' })).toBeVisible()
+  await expect(edit.getByRole('button', { name: 'Remove packages/ui' })).toBeVisible()
   await orcaPage.evaluate(async () => {
     await window.__store!.getState().updateSettingsOrThrow({ theme: 'dark' })
   })
@@ -162,7 +186,7 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
   await orcaPage.getByRole('button', { name: 'New preset', exact: true }).click()
   const second = orcaPage.getByRole('region', { name: 'New sparse preset' })
   await second.getByLabel('Name', { exact: true }).fill('web app and shared ui')
-  await second.getByLabel('Directories', { exact: true }).fill('packages/ui')
+  await addDirectory(second, 'packages/ui')
   await expect(
     second.getByText('A preset named “Web app and shared UI” already exists.')
   ).toBeVisible()
@@ -221,7 +245,7 @@ test('sparse preset editor visual proof', async ({ orcaPage }, testInfo) => {
   await orcaPage.getByRole('button', { name: 'New Preset', exact: true }).click()
   const settingsEditor = orcaPage.getByRole('region', { name: 'New sparse preset' })
   await settingsEditor.getByLabel('Name', { exact: true }).fill('web app and shared ui')
-  await settingsEditor.getByLabel('Directories', { exact: true }).fill('apps/web')
+  await addDirectory(settingsEditor, 'apps/web')
   await expect(
     settingsEditor.getByText('A preset named “Web app and shared UI” already exists.')
   ).toBeVisible()

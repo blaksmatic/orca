@@ -52,7 +52,6 @@ export function SparseCheckoutPresetDraftForm({
   const directoryError = draft.directoriesText.length > 0 ? parsedDirectories?.error : null
   // Why: chips must survive a preset whose saved paths no longer parse.
   const selectedDirectories = normalizeSparseDirectoryLines(draft.directoriesText)
-  const directoryCount = selectedDirectories.length
   const setDirectories = (next: string[]): void => {
     onDraftChange({ ...draft, directoriesText: next.join('\n') })
   }
@@ -116,28 +115,12 @@ export function SparseCheckoutPresetDraftForm({
             disabled={submitting}
             onRemove={removeDirectory}
           />
-          <p
-            id={`${id}-directory-status`}
-            className="text-xs text-muted-foreground"
-            aria-live="polite"
-          >
+          <p id={`${id}-directory-status`} aria-live="polite">
             {directoryError ? (
-              <span className="text-destructive">{directoryError}</span>
-            ) : directoryCount === 1 ? (
-              translate('sparsePreset.singleDirectory', '1 directory selected')
-            ) : (
-              translate('sparsePreset.directoryCount', '{{count}} directories selected', {
-                count: directoryCount
-              })
-            )}
+              <span className="text-xs text-destructive">{directoryError}</span>
+            ) : null}
           </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {translate(
-            'sparsePreset.futureHelp',
-            'This preset is used when creating a workspace. Saving it does not change existing checkouts or the explorer view.'
-          )}
-        </p>
         <details className="space-y-2 text-xs text-muted-foreground">
           <summary className="cursor-pointer">
             {translate('sparsePreset.details', 'What gets checked out?')}
