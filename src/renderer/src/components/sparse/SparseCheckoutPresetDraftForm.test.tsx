@@ -86,3 +86,25 @@ it('disables the folder picker until a repository root is known', () => {
   )
   expect(screen.getByRole('combobox').hasAttribute('disabled')).toBe(false)
 })
+
+it('opens a preset saved before the chip editor with every directory intact', () => {
+  const onDraftChange = vi.fn()
+  const saved = ['apps/web', 'packages/ui', 'packages/design-tokens']
+  render(
+    <SparseCheckoutPresetDraftForm
+      {...callbacks}
+      onDraftChange={onDraftChange}
+      draft={{ mode: 'edit', name: 'Legacy', directoriesText: saved.join('\n') }}
+      parsedDirectories={{ directories: saved, error: null }}
+      nameError={null}
+      submitting={false}
+      canSave={true}
+    />
+  )
+  // Why: presets predate the chip editor, so the stored string[] must survive untouched.
+  for (const directory of saved) {
+    expect(screen.getByRole('button', { name: `Remove ${directory}` })).toBeTruthy()
+  }
+  expect(screen.getByRole('button', { name: 'Save preset' }).hasAttribute('disabled')).toBe(false)
+  expect(onDraftChange).not.toHaveBeenCalled()
+})

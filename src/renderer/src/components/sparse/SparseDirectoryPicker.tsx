@@ -112,6 +112,8 @@ export function SparseDirectoryPicker({
           type="button"
           variant="outline"
           role="combobox"
+          // Why: combobox takes no name from content, so the visible label is not enough.
+          aria-label={translate('sparsePreset.addPath', 'Add a folder')}
           aria-expanded={open}
           aria-describedby={describedById}
           disabled={disabled || !rootPath}
