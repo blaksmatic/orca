@@ -3,9 +3,11 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { SparseDirectoryPicker } from './SparseDirectoryPicker'
+import { SparseSelectedDirectoryList } from './SparseSelectedDirectoryList'
+import { addSparseDirectoryEntries } from './sparse-directory-entry-input'
 import { translate } from '@/i18n/i18n'
+import { normalizeSparseDirectoryLines } from '@/lib/sparse-paths'
 import type { SparsePresetDirectoryParseResult } from '@/lib/sparse-preset-draft'
 
 export type SparsePresetDraft = {
@@ -46,14 +48,19 @@ export function SparseCheckoutPresetDraftForm({
 }: SparseCheckoutPresetDraftFormProps): React.JSX.Element {
   const id = useId()
   const [nameTouched, setNameTouched] = useState(false)
-  const [directoriesTouched, setDirectoriesTouched] = useState(false)
   const visibleNameError = nameTouched || draft.name.length > 0 ? nameError : null
-  const directoryError =
-    directoriesTouched || draft.directoriesText.length > 0 ? parsedDirectories?.error : null
-  const directoryCount = parsedDirectories?.directories.length ?? 0
-  const addDirectory = (directory: string): void => {
-    const next = [...(parsedDirectories?.directories ?? []), directory]
+  const directoryError = draft.directoriesText.length > 0 ? parsedDirectories?.error : null
+  // Why: chips must survive a preset whose saved paths no longer parse.
+  const selectedDirectories = normalizeSparseDirectoryLines(draft.directoriesText)
+  const directoryCount = selectedDirectories.length
+  const setDirectories = (next: string[]): void => {
     onDraftChange({ ...draft, directoriesText: next.join('\n') })
+  }
+  const addDirectories = (directories: string[]): void => {
+    setDirectories(addSparseDirectoryEntries(selectedDirectories, directories))
+  }
+  const removeDirectory = (directory: string): void => {
+    setDirectories(selectedDirectories.filter((entry) => entry !== directory))
   }
   return (
     <form
@@ -87,38 +94,28 @@ export function SparseCheckoutPresetDraftForm({
           ) : null}
         </div>
         <div className="space-y-2">
-          <Label htmlFor={`${id}-directories`}>
+          <Label id={`${id}-directories`}>
             {translate('sparsePreset.directories', 'Directories')}
           </Label>
           <p id={`${id}-help`} className="text-xs text-muted-foreground">
             {translate(
               'sparsePreset.pathInstructions',
-              'One folder per line, relative to the repository root.'
+              'Pick folders from the repository, or type any repo-relative path.'
             )}
           </p>
-          <Textarea
-            id={`${id}-directories`}
-            value={draft.directoriesText}
-            onChange={(event) => onDraftChange({ ...draft, directoriesText: event.target.value })}
-            placeholder={'apps/web\npackages/ui'}
-            rows={6}
-            spellCheck={false}
+          <SparseDirectoryPicker
+            rootPath={repoRootPath ?? ''}
+            connectionId={repoConnectionId}
+            selected={selectedDirectories}
             disabled={submitting}
-            className="resize-y"
-            variant="code"
-            onBlur={() => setDirectoriesTouched(true)}
-            aria-invalid={!!directoryError}
-            aria-describedby={`${id}-help ${id}-directory-status`}
+            describedById={`${id}-help ${id}-directory-status`}
+            onAdd={addDirectories}
           />
-          {repoRootPath ? (
-            <SparseDirectoryPicker
-              rootPath={repoRootPath}
-              connectionId={repoConnectionId}
-              selected={parsedDirectories?.directories ?? []}
-              disabled={submitting}
-              onAdd={addDirectory}
-            />
-          ) : null}
+          <SparseSelectedDirectoryList
+            directories={selectedDirectories}
+            disabled={submitting}
+            onRemove={removeDirectory}
+          />
           <p
             id={`${id}-directory-status`}
             className="text-xs text-muted-foreground"

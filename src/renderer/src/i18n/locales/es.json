@@ -15424,6 +15424,10 @@
     "loadingPaths": "Reading folders…",
     "pathsUnavailable": "Could not read this folder. Type the path instead.",
     "pathAdded": "Added",
-    "openFolder": "Open {{name}}"
+    "openFolder": "Open {{name}}",
+    "findOrTypePath": "Find a folder, or type any path…",
+    "addTypedPath": "Add",
+    "noDirectories": "No folders added yet.",
+    "removePath": "Remove {{name}}"
   }
 }

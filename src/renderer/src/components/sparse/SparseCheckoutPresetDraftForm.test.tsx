@@ -6,7 +6,7 @@ import { SparseCheckoutPresetDraftForm } from './SparseCheckoutPresetDraftForm'
 afterEach(cleanup)
 const callbacks = { onDraftChange: vi.fn(), onSave: vi.fn(), onCancel: vi.fn() }
 
-it('keeps an untouched new preset neutral and reveals required errors on blur', () => {
+it('keeps an untouched new preset neutral and reveals the name error on blur', () => {
   render(
     <SparseCheckoutPresetDraftForm
       {...callbacks}
@@ -18,11 +18,11 @@ it('keeps an untouched new preset neutral and reveals required errors on blur', 
     />
   )
   expect(screen.queryByText('Name is required.')).toBeNull()
+  // Why: an empty draft has nothing to be wrong with yet — the list states it plainly.
   expect(screen.queryByText('Add at least one directory.')).toBeNull()
+  expect(screen.getByText('No folders added yet.')).toBeTruthy()
   fireEvent.blur(screen.getByLabelText('Name'))
-  fireEvent.blur(screen.getByLabelText('Directories'))
   expect(screen.getByText('Name is required.')).toBeTruthy()
-  expect(screen.getByText('Add at least one directory.')).toBeTruthy()
 })
 
 it('shows singular counts and keeps a save failure alongside the retained draft', () => {
@@ -39,6 +39,51 @@ it('shows singular counts and keeps a save failure alongside the retained draft'
   )
   expect(screen.getByText('1 directory selected')).toBeTruthy()
   expect(screen.getByRole('alert').textContent).toContain('Try again')
-  expect(screen.getByDisplayValue('apps/web')).toBeTruthy()
+  expect(screen.getByText('apps/web')).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Save preset' }).hasAttribute('disabled')).toBe(false)
+})
+
+it('removes a selected directory from the draft', () => {
+  const onDraftChange = vi.fn()
+  render(
+    <SparseCheckoutPresetDraftForm
+      {...callbacks}
+      onDraftChange={onDraftChange}
+      draft={{ mode: 'edit', name: 'Web', directoriesText: 'apps/web\npackages/ui' }}
+      parsedDirectories={{ directories: ['apps/web', 'packages/ui'], error: null }}
+      nameError={null}
+      submitting={false}
+      canSave={true}
+    />
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Remove apps/web' }))
+  expect(onDraftChange).toHaveBeenCalledWith(
+    expect.objectContaining({ directoriesText: 'packages/ui' })
+  )
+})
+
+it('disables the folder picker until a repository root is known', () => {
+  const { rerender } = render(
+    <SparseCheckoutPresetDraftForm
+      {...callbacks}
+      draft={{ mode: 'new', name: '', directoriesText: '' }}
+      parsedDirectories={{ directories: [], error: null }}
+      nameError={null}
+      submitting={false}
+      canSave={false}
+    />
+  )
+  expect(screen.getByRole('combobox').hasAttribute('disabled')).toBe(true)
+  rerender(
+    <SparseCheckoutPresetDraftForm
+      {...callbacks}
+      draft={{ mode: 'new', name: '', directoriesText: '' }}
+      parsedDirectories={{ directories: [], error: null }}
+      nameError={null}
+      submitting={false}
+      canSave={false}
+      repoRootPath="/repo"
+    />
+  )
+  expect(screen.getByRole('combobox').hasAttribute('disabled')).toBe(false)
 })

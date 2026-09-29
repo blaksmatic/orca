@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ChevronRight, Folder, FolderPlus, LoaderCircle } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ChevronRight, ChevronsUpDown, Folder, LoaderCircle, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -9,6 +9,7 @@ import {
   CommandList
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { getWorktreeSymlinkPathFilterState } from '@/components/settings/worktree-symlink-path-filter'
 import { joinPath } from '@/lib/path'
 import { translate } from '@/i18n/i18n'
 import {
@@ -16,13 +17,15 @@ import {
   joinSparseBrowsePath,
   listBrowsableDirectories
 } from './sparse-directory-browse'
+import { parseSparseDirectoryEntryInput } from './sparse-directory-entry-input'
 
 type SparseDirectoryPickerProps = {
   rootPath: string
   connectionId?: string
   selected: string[]
   disabled: boolean
-  onAdd: (directory: string) => void
+  describedById?: string
+  onAdd: (directories: string[]) => void
 }
 
 type BrowseState =
@@ -35,14 +38,16 @@ export function SparseDirectoryPicker({
   connectionId,
   selected,
   disabled,
+  describedById,
   onAdd
-}: SparseDirectoryPickerProps): React.JSX.Element | null {
+}: SparseDirectoryPickerProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const [relativePath, setRelativePath] = useState('')
+  const [query, setQuery] = useState('')
   const [state, setState] = useState<BrowseState>({ status: 'loading' })
 
   useEffect(() => {
-    if (!open) {
+    if (!open || !rootPath) {
       return
     }
     let cancelled = false
@@ -68,26 +73,58 @@ export function SparseDirectoryPicker({
     setOpen(nextOpen)
     if (!nextOpen) {
       setRelativePath('')
+      setQuery('')
     }
   }, [])
 
-  if (!rootPath) {
-    return null
-  }
+  const commit = useCallback(
+    (raw: string): void => {
+      const { entries } = parseSparseDirectoryEntryInput(raw)
+      if (entries.length > 0) {
+        onAdd(entries)
+      }
+      setQuery('')
+      handleOpenChange(false)
+    },
+    [handleOpenChange, onAdd]
+  )
+
+  const { queryTrimmed, filtered, showLiteralItem } = useMemo(
+    () =>
+      getWorktreeSymlinkPathFilterState({
+        query,
+        suggestions:
+          state.status === 'ready'
+            ? state.directories.map((name) => ({ name, isDirectory: true }))
+            : [],
+        existingPaths: selected
+      }),
+    [query, state, selected]
+  )
+  // Why: free-form typing is repo-relative, so it must not inherit the browsed folder.
+  const literalError = showLiteralItem ? parseSparseDirectoryEntryInput(queryTrimmed).error : null
   const trail = getSparseBrowseTrail(relativePath)
-  const directories = state.status === 'ready' ? state.directories : []
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button type="button" variant="outline" size="sm" disabled={disabled}>
-          <FolderPlus />
-          {translate('sparsePreset.addPath', 'Add a folder')}
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          aria-describedby={describedById}
+          disabled={disabled || !rootPath}
+          className="w-full justify-between"
+        >
+          <span className="truncate">{translate('sparsePreset.addPath', 'Add a folder')}</span>
+          <ChevronsUpDown className="size-3.5 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
         sideOffset={4}
-        className="w-80"
+        className="w-[var(--radix-popover-trigger-width)]"
         onEscapeKeyDown={(event) => event.stopPropagation()}
       >
         <div className="flex max-h-[min(var(--radix-popover-content-available-height),22rem)] flex-col">
@@ -112,10 +149,18 @@ export function SparseDirectoryPicker({
               </span>
             ))}
           </div>
-          <Command className="min-h-0 flex-1">
+          <Command shouldFilter={false} className="min-h-0 flex-1">
             <CommandInput
-              placeholder={translate('sparsePreset.findPath', 'Find a folder…')}
-              aria-label={translate('sparsePreset.findPath', 'Find a folder…')}
+              placeholder={translate(
+                'sparsePreset.findOrTypePath',
+                'Find a folder, or type any path…'
+              )}
+              aria-label={translate(
+                'sparsePreset.findOrTypePath',
+                'Find a folder, or type any path…'
+              )}
+              value={query}
+              onValueChange={setQuery}
             />
             <CommandList className="min-h-0 flex-1">
               <CommandEmpty>
@@ -128,26 +173,41 @@ export function SparseDirectoryPicker({
                       )
                     : translate('sparsePreset.noPathMatches', 'No folders found.')}
               </CommandEmpty>
+              {showLiteralItem ? (
+                literalError ? (
+                  <p className="px-3 py-2 text-xs text-destructive">{literalError}</p>
+                ) : (
+                  <CommandItem
+                    value={`__literal__:${queryTrimmed}`}
+                    onSelect={() => commit(queryTrimmed)}
+                  >
+                    <Plus className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="truncate text-xs">
+                      {translate('sparsePreset.addTypedPath', 'Add')}{' '}
+                      <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+                        {queryTrimmed}
+                      </code>
+                    </span>
+                  </CommandItem>
+                )
+              ) : null}
               {state.status === 'loading' ? (
                 <div className="flex items-center justify-center py-4">
                   <LoaderCircle className="size-4 animate-spin opacity-60" />
                 </div>
               ) : null}
-              {directories.map((name) => {
-                const path = joinSparseBrowsePath(relativePath, name)
+              {filtered.map((entry) => {
+                const path = joinSparseBrowsePath(relativePath, entry.name)
                 const alreadySelected = selected.includes(path)
                 return (
                   <CommandItem
                     key={path}
                     value={path}
                     disabled={alreadySelected}
-                    onSelect={() => {
-                      onAdd(path)
-                      handleOpenChange(false)
-                    }}
+                    onSelect={() => commit(path)}
                   >
                     <Folder className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="flex-1 truncate font-mono text-xs">{name}</span>
+                    <span className="flex-1 truncate font-mono text-xs">{entry.name}</span>
                     {alreadySelected ? (
                       <span className="text-[11px] text-muted-foreground">
                         {translate('sparsePreset.pathAdded', 'Added')}
@@ -157,10 +217,13 @@ export function SparseDirectoryPicker({
                       type="button"
                       variant="ghost"
                       size="icon-xs"
-                      aria-label={translate('sparsePreset.openFolder', 'Open {{name}}', { name })}
+                      aria-label={translate('sparsePreset.openFolder', 'Open {{name}}', {
+                        name: entry.name
+                      })}
                       onClick={(event) => {
                         event.stopPropagation()
                         setRelativePath(path)
+                        setQuery('')
                       }}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {

@@ -18550,7 +18550,7 @@
     "loading": "Loading presets...",
     "details": "What gets checked out?",
     "finishEditing": "Save or cancel the preset to continue creating your workspace.",
-    "pathInstructions": "One folder per line, relative to the repository root.",
+    "pathInstructions": "Pick folders from the repository, or type any repo-relative path.",
     "singleDirectory": "1 directory selected",
     "retryLoad": "Retry loading presets",
     "fullCheckout": "Full checkout",
@@ -18566,6 +18566,10 @@
     "loadingPaths": "Reading folders…",
     "pathsUnavailable": "Could not read this folder. Type the path instead.",
     "pathAdded": "Added",
-    "openFolder": "Open {{name}}"
+    "openFolder": "Open {{name}}",
+    "findOrTypePath": "Find a folder, or type any path…",
+    "addTypedPath": "Add",
+    "noDirectories": "No folders added yet.",
+    "removePath": "Remove {{name}}"
   }
 }
